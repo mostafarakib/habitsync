@@ -13,8 +13,11 @@
 **/.next/
 **/.nuxt/
 
-# Ignore local temp uploads if using Multer
-backend/public/temp/
+# Ignore everything in temp
+backend/public/temp/*
+
+# BUT do not ignore the .gitkeep file
+!backend/public/temp/.gitkeep
 
 # Logs
 logs
