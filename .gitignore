@@ -2,7 +2,7 @@
 **/node_modules/
 
 # Ignore environment variables in both sub-folders
-**/ .env
+**/.env
 **/.env.test
 **/.env.production
 **/.env.locals
