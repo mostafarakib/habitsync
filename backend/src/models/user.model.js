@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { ApiError } from "../utils/index.js";
 
 const userSchema = new Schema(
   {
@@ -56,14 +57,13 @@ const userSchema = new Schema(
 );
 
 // Password hashing before saving the user to the database
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
 
   try {
     this.password = await bcrypt.hash(this.password, 10);
-    return next();
   } catch (error) {
-    return next(error);
+    throw new ApiError(500, "Error hashing password");
   }
 });
 
