@@ -62,13 +62,12 @@ const habitSchema = new Schema(
       default: null,
       validate: {
         validator: function (value) {
-          if (this.evaluationType === "measurable") {
-            return value !== null && value >= 0;
+          if (this.evaluationType === "measurable" && value !== null) {
+            return value >= 0;
           }
-          return true; // No validation needed for Boolean type
+          return true; // No validation needed for Boolean type or null targetValue
         },
-        message:
-          "Target value is required for measurable habits and must be a non-negative number.",
+        message: "Target value must be a non-negative number.",
       },
     },
     targetUnit: {
