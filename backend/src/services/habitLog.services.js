@@ -63,4 +63,64 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
   return habitLog;
 };
 
-export { upsertHabitLogService };
+const getHabitLogsByDateService = async (userId, date) => {
+  if (!date) {
+    throw new ApiError(400, "Date is required");
+  }
+
+  // normalize the date and validate if it's editable
+  const normalizedDate = normalizeDate(date);
+  validateIsHabitLogEditable(normalizedDate);
+
+  // fetch active habits for that date
+  const habits = await Habit.find({
+    user: userId,
+    archived: false,
+
+    $and: [
+      {
+        $or: [
+          { startDate: { $exists: false } },
+          { startDate: { $lte: normalizedDate } },
+        ],
+      },
+      {
+        $or: [
+          { endDate: { $exists: false } },
+          { endDate: { $gte: normalizedDate } },
+        ],
+      },
+    ],
+  })
+    .sort({ createdAt: 1 })
+    .lean();
+
+  // fetch logs for those habits on that date
+  const logs = await HabitLog.find({
+    user: userId,
+    date: normalizedDate,
+  }).lean();
+
+  // map logs by habit ID for easy lookup
+  const logMap = new Map();
+  logs.forEach((log) => {
+    logMap.set(log.habit.toString(), log);
+  });
+
+  // merge habits + logs
+
+  const result = habits.map((habit) => {
+    const habitId = habit._id.toString();
+
+    const log = logMap.get(habitId) || null;
+
+    return {
+      habit,
+      log,
+    };
+  });
+
+  return result;
+};
+
+export { upsertHabitLogService, getHabitLogsByDateService };
