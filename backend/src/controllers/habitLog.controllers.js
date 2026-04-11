@@ -1,4 +1,5 @@
 import {
+  getHabitLogsByDateRangeService,
   getHabitLogsByDateService,
   upsertHabitLogService,
 } from "../services/habitLog.services.js";
@@ -35,4 +36,15 @@ const getHabitLogsByDate = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Habit logs retrieved successfully", data));
 });
 
-export { upsertHabitLog, getHabitLogsByDate };
+const getHabitLogsByDateRange = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { startDate, endDate } = req.query;
+
+  const data = await getHabitLogsByDateRangeService(userId, startDate, endDate);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit logs retrieved successfully", data));
+});
+
+export { upsertHabitLog, getHabitLogsByDate, getHabitLogsByDateRange };

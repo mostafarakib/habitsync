@@ -14,7 +14,7 @@ const validateIsHabitLogEditable = (date) => {
   editableStartDate.setDate(editableStartDate.getDate() - 30); // Allow editing logs from the past 30 days
 
   if (date < editableStartDate) {
-    throw new ApiError(400, "Logs older than 2 months cannot be edited");
+    throw new ApiError(400, "Logs older than 30 days cannot be edited");
   }
   if (date > today) {
     throw new ApiError(400, "Logs for future dates cannot be edited");
