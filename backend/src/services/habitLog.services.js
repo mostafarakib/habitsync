@@ -361,6 +361,59 @@ const getHabitLogByIdService = async (userId, habitLogId) => {
   return habitLog;
 };
 
+const getHabitStreakService = async (userId, habitId) => {
+  const habit = await Habit.findOne({ _id: habitId, user: userId });
+
+  if (!habit) {
+    throw new ApiError(404, "Habit not found");
+  }
+
+  // fetch completed logs for that habit, sorted by date descending
+  const completedLogs = await HabitLog.find({
+    user: userId,
+    habit: habitId,
+    isCompleted: true,
+  })
+    .sort({ date: -1 })
+    .select("date");
+
+  if (completedLogs.length === 0) {
+    return {
+      habitId,
+      streak: 0,
+    };
+  }
+
+  let streak = 0;
+  let currentDate = normalizeDate(new Date());
+  let logIndex = 0;
+
+  // if today not completed, start from yesterday
+  if (
+    normalizeDate(completedLogs[0].date).getTime() !== currentDate.getTime()
+  ) {
+    currentDate.setDate(currentDate.getDate() - 1);
+  }
+
+  // iterate from backwards until we find a non-completed day
+  while (logIndex < completedLogs.length) {
+    const logDate = normalizeDate(completedLogs[logIndex].date);
+
+    if (logDate.getTime() === currentDate.getTime()) {
+      streak++;
+
+      currentDate.setDate(currentDate.getDate() - 1);
+      logIndex++;
+    } else {
+      break;
+    }
+  }
+
+  return {
+    habitId,
+    streak,
+  };
+};
 export {
   upsertHabitLogService,
   getHabitLogsByDateService,
@@ -370,4 +423,5 @@ export {
   updateHabitLogNotesService,
   deleteHabitLogService,
   getHabitLogByIdService,
+  getHabitStreakService,
 };

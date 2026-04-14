@@ -4,6 +4,7 @@ import {
   getHabitLogsByDateRangeService,
   getHabitLogsByDateService,
   getHabitLogsByHabitService,
+  getHabitStreakService,
   updateHabitLogNotesService,
   updateHabitLogValueService,
   upsertHabitLogService,
@@ -121,6 +122,17 @@ const getHabitLogById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Habit log retrieved successfully", habitLog));
 });
 
+const getHabitStreak = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { habitId } = req.params;
+
+  const streak = await getHabitStreakService(userId, habitId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit streak retrieved successfully", streak));
+});
+
 export {
   upsertHabitLog,
   getHabitLogsByDate,
@@ -130,4 +142,5 @@ export {
   updateHabitLogNotes,
   deleteHabitLog,
   getHabitLogById,
+  getHabitStreak,
 };

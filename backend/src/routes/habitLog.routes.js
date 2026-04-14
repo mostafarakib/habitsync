@@ -6,6 +6,7 @@ import {
   getHabitLogsByDate,
   getHabitLogsByDateRange,
   getHabitLogsByHabit,
+  getHabitStreak,
   updateHabitLogNotes,
   updateHabitLogValue,
   upsertHabitLog,
@@ -13,6 +14,7 @@ import {
 
 const router = Router();
 
+// All routes in this router require authentication
 router.use(verifyJWT);
 
 router.put("/", upsertHabitLog);
@@ -23,5 +25,6 @@ router.patch("/:id/value", updateHabitLogValue);
 router.patch("/:id/notes", updateHabitLogNotes);
 router.delete("/:id", deleteHabitLog);
 router.get("/:id", getHabitLogById);
+router.get("/streak/:habitId", getHabitStreak);
 
 export default router;
