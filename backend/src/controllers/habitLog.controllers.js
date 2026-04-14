@@ -1,6 +1,9 @@
 import {
   getHabitLogsByDateRangeService,
   getHabitLogsByDateService,
+  getHabitLogsByHabitService,
+  updateHabitLogNotesService,
+  updateHabitLogValueService,
   upsertHabitLogService,
 } from "../services/habitLog.services.js";
 import { ApiResponse, asyncHandler } from "../utils/index.js";
@@ -47,4 +50,58 @@ const getHabitLogsByDateRange = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Habit logs retrieved successfully", data));
 });
 
-export { upsertHabitLog, getHabitLogsByDate, getHabitLogsByDateRange };
+const getHabitLogsByHabit = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const { habitId } = req.params;
+
+  const { startDate, endDate } = req.query;
+
+  const data = await getHabitLogsByHabitService(
+    userId,
+    habitId,
+    startDate,
+    endDate
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit logs retrieved successfully", data));
+});
+
+const updateHabitLogValue = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id } = req.params;
+  const { value } = req.body;
+
+  const habitLog = await updateHabitLogValueService(userId, id, value);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Habit log value updated successfully", habitLog)
+    );
+});
+
+const updateHabitLogNotes = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id } = req.params;
+  const { notes } = req.body;
+
+  const habitLog = await updateHabitLogNotesService(userId, id, notes);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Habit log notes updated successfully", habitLog)
+    );
+});
+
+export {
+  upsertHabitLog,
+  getHabitLogsByDate,
+  getHabitLogsByDateRange,
+  getHabitLogsByHabit,
+  updateHabitLogValue,
+  updateHabitLogNotes,
+};

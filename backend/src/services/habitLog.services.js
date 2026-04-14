@@ -212,8 +212,126 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
   return result;
 };
 
+const getHabitLogsByHabitService = async (
+  userId,
+  habitId,
+  startDate,
+  endDate
+) => {
+  if (!habitId) {
+    throw new ApiError(400, "Habit ID is required");
+  }
+  // validate habit exists and belongs to user
+  const habit = await Habit.findOne({ _id: habitId, user: userId });
+
+  if (!habit) {
+    throw new ApiError(404, "Habit not found");
+  }
+
+  const query = {
+    user: userId,
+    habit: habitId,
+  };
+  // validate date range if provided
+
+  if (startDate && endDate) {
+    const normalizedStartDate = normalizeDate(startDate);
+    const normalizedEndDate = normalizeDate(endDate);
+
+    validateIsHabitLogEditable(normalizedStartDate);
+    validateIsHabitLogEditable(normalizedEndDate);
+
+    const diffInDays =
+      (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24);
+
+    if (diffInDays > 30) {
+      throw new ApiError(400, "Date range cannot exceed 30 days");
+    }
+
+    if (normalizedEndDate < normalizedStartDate) {
+      throw new ApiError(400, "End date cannot be before start date");
+    }
+
+    query.date = {
+      $gte: normalizedStartDate,
+      $lte: normalizedEndDate,
+    };
+  }
+
+  // fetch logs for that habit (and date range if provided)
+  const logs = await HabitLog.find(query).sort({ date: 1 }).lean();
+
+  return logs;
+};
+
+const updateHabitLogValueService = async (userId, habitLogId, value) => {
+  if (value === undefined) {
+    throw new ApiError(400, "Value is required");
+  }
+
+  const habitLog = await HabitLog.find({ _id: habitLogId, user: userId });
+
+  if (!habitLog) {
+    throw new ApiError(404, "Habit log not found");
+  }
+
+  // validate if the log is editable
+  validateIsHabitLogEditable(habitLog.date);
+
+  const habit = await Habit.findOne({ _id: habitLog.habit, user: userId });
+
+  if (!habit) {
+    throw new ApiError(404, "Habit not found");
+  }
+
+  if (habit.archived) {
+    throw new ApiError(400, "Cannot update log of an archived habit");
+  }
+
+  habitLog.value = value;
+  habitLog.isCompleted = calculateHabitCompletion(habit, value);
+
+  await habitLog.save();
+  return habitLog;
+};
+
+const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
+  if (notes === undefined) {
+    throw new ApiError(400, "Notes are required");
+  }
+
+  if (typeof notes !== "string") {
+    throw new ApiError(400, "Notes must be a string");
+  }
+
+  if (notes === null) {
+    notes = "";
+  }
+
+  if (notes.length > 200) {
+    throw new ApiError(400, "Notes cannot exceed 200 characters");
+  }
+
+  const habitLog = await HabitLog.findOne({ _id: habitLogId, user: userId });
+
+  if (!habitLog) {
+    throw new ApiError(404, "Habit log not found");
+  }
+
+  // validate if the log is editable
+  validateIsHabitLogEditable(habitLog.date);
+
+  habitLog.notes = notes;
+
+  await habitLog.save();
+  return habitLog;
+};
+
 export {
   upsertHabitLogService,
   getHabitLogsByDateService,
   getHabitLogsByDateRangeService,
+  getHabitLogsByHabitService,
+  updateHabitLogValueService,
+  updateHabitLogNotesService,
 };
