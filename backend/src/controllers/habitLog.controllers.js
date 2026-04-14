@@ -1,4 +1,6 @@
 import {
+  deleteHabitLogService,
+  getHabitLogByIdService,
   getHabitLogsByDateRangeService,
   getHabitLogsByDateService,
   getHabitLogsByHabitService,
@@ -97,6 +99,28 @@ const updateHabitLogNotes = asyncHandler(async (req, res) => {
     );
 });
 
+const deleteHabitLog = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id } = req.params;
+
+  const result = await deleteHabitLogService(userId, id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit log deleted successfully", result));
+});
+
+const getHabitLogById = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id } = req.params;
+
+  const habitLog = await getHabitLogByIdService(userId, id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit log retrieved successfully", habitLog));
+});
+
 export {
   upsertHabitLog,
   getHabitLogsByDate,
@@ -104,4 +128,6 @@ export {
   getHabitLogsByHabit,
   updateHabitLogValue,
   updateHabitLogNotes,
+  deleteHabitLog,
+  getHabitLogById,
 };

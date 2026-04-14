@@ -327,6 +327,40 @@ const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
   return habitLog;
 };
 
+const deleteHabitLogService = async (userId, habitLogId) => {
+  const habitLog = await HabitLog.findOne({ _id: habitLogId, user: userId });
+
+  if (!habitLog) {
+    throw new ApiError(404, "Habit log not found");
+  }
+
+  // validate if the log is editable
+  validateIsHabitLogEditable(habitLog.date);
+
+  await habitLog.deleteOne();
+
+  return {
+    deleted: true,
+    habitLogId,
+  };
+};
+
+const getHabitLogByIdService = async (userId, habitLogId) => {
+  const habitLog = await HabitLog.findOne({
+    _id: habitLogId,
+    user: userId,
+  }).populate({
+    path: "habit",
+    select: "name evaluationType targetType targetValue targetUnit archived",
+  });
+
+  if (!habitLog) {
+    throw new ApiError(404, "Habit log not found");
+  }
+
+  return habitLog;
+};
+
 export {
   upsertHabitLogService,
   getHabitLogsByDateService,
@@ -334,4 +368,6 @@ export {
   getHabitLogsByHabitService,
   updateHabitLogValueService,
   updateHabitLogNotesService,
+  deleteHabitLogService,
+  getHabitLogByIdService,
 };
