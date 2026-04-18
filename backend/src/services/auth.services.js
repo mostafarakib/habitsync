@@ -8,12 +8,28 @@ const registerUserService = async ({
   password,
   avatarLocalPath,
 }) => {
+  //validate form data
+  if (!fullName) {
+    throw new ApiError(400, "Full name is required");
+  }
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+  if (!password) {
+    throw new ApiError(400, "Password is required");
+  }
+
+  if (password.length < 6) {
+    throw new ApiError(400, "Password must be at least 6 characters");
+  }
+
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
     throw new ApiError(400, "User already exists with this email");
   }
 
+  // file upload to cloudinary
   let avatarUrl = "";
 
   if (avatarLocalPath) {
@@ -28,6 +44,7 @@ const registerUserService = async ({
     fs.unlinkSync(avatarLocalPath);
   }
 
+  // create user in database
   const user = await User.create({
     fullName,
     email,
