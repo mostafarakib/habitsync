@@ -32,7 +32,7 @@ const getHabitByIdService = async (userId, habitId) => {
 };
 
 const updateHabitService = async (userId, habitId, updateData) => {
-  const habit = await Habit.findByIdAndUpdate(
+  const habit = await Habit.findOneAndUpdate(
     { _id: habitId, user: userId },
     updateData,
     {
@@ -49,7 +49,7 @@ const updateHabitService = async (userId, habitId, updateData) => {
 };
 
 const archiveHabitService = async (userId, habitId) => {
-  const habit = await Habit.findByIdAndUpdate(
+  const habit = await Habit.findOneAndUpdate(
     {
       _id: habitId,
       user: userId,
@@ -66,7 +66,7 @@ const archiveHabitService = async (userId, habitId) => {
 };
 
 const unarchiveHabitService = async (userId, habitId) => {
-  const habit = await Habit.findByIdAndUpdate(
+  const habit = await Habit.findOneAndUpdate(
     {
       _id: habitId,
       user: userId,
