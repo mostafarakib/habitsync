@@ -2,7 +2,7 @@ import Habit from "../models/habit.model.js";
 import { ApiError } from "../utils/index.js";
 
 const createHabitService = async (userId, habitData) => {
-  const habit = await Habit.create({ ...habitData, userId });
+  const habit = await Habit.create({ ...habitData, user: userId });
 
   return habit;
 };
