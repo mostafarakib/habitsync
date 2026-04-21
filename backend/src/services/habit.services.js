@@ -8,14 +8,37 @@ const createHabitService = async (userId, habitData) => {
 };
 
 const getHabitsByUserService = async (userId, filters = {}) => {
+  // base query to find habits for the user
   const query = { user: userId };
+
+  /**
+   * ARCHIVE FILTERING LOGIC
+   *
+   * Default behavior:
+   * If no archived filter is provided, return ALL habits
+   * (both archived and unarchived).
+   *
+   * Optional filtering:
+   * - filters.archived === true  → return ONLY archived habits
+   * - filters.archived === false → return ONLY active (unarchived) habits
+   *
+   * Examples:
+   * getHabitsByUserService(userId)
+   * → returns all habits
+   *
+   * getHabitsByUserService(userId, { archived: false })
+   * → returns only active habits
+   *
+   * getHabitsByUserService(userId, { archived: true })
+   * → returns only archived habits
+   */
 
   if (filters.archived !== undefined) {
     query.archived = filters.archived;
   }
 
   const habits = await Habit.find(query).sort({
-    createdAt: -1,
+    createdAt: -1, // newest habits first
   });
 
   return habits;
