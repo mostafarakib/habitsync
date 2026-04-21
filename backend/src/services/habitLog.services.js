@@ -4,7 +4,7 @@ import {
   ApiError,
   calculateHabitCompletion,
   normalizeDate,
-  validateIsHabitLogEditable,
+  validateHabitLogWriteAllowed,
 } from "../utils/index.js";
 
 // Create or update a habit log for a specific date
@@ -30,7 +30,7 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
   }
 
   const normalizedDate = normalizeDate(date);
-  validateIsHabitLogEditable(normalizedDate);
+  validateHabitLogWriteAllowed(normalizedDate);
 
   let existingLog = await HabitLog.findOne({
     habit: habitId,
@@ -68,9 +68,8 @@ const getHabitLogsByDateService = async (userId, date) => {
     throw new ApiError(400, "Date is required");
   }
 
-  // normalize the date and validate if it's editable
+  // normalize the date
   const normalizedDate = normalizeDate(date);
-  validateIsHabitLogEditable(normalizedDate);
 
   // fetch active habits for that date
   const habits = await Habit.find({
@@ -130,12 +129,6 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
 
   const normalizedStartDate = normalizeDate(startDate);
   const normalizedEndDate = normalizeDate(endDate);
-
-  // validate if the date range is editable
-  validateIsHabitLogEditable(normalizedStartDate);
-  validateIsHabitLogEditable(normalizedEndDate);
-
-  // validate date range
 
   const diffInDays =
     (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24);
@@ -238,9 +231,6 @@ const getHabitLogsByHabitService = async (
     const normalizedStartDate = normalizeDate(startDate);
     const normalizedEndDate = normalizeDate(endDate);
 
-    validateIsHabitLogEditable(normalizedStartDate);
-    validateIsHabitLogEditable(normalizedEndDate);
-
     const diffInDays =
       (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24);
 
@@ -276,7 +266,7 @@ const updateHabitLogValueService = async (userId, habitLogId, value) => {
   }
 
   // validate if the log is editable
-  validateIsHabitLogEditable(habitLog.date);
+  validateHabitLogWriteAllowed(habitLog.date);
 
   const habit = await Habit.findOne({ _id: habitLog.habit, user: userId });
 
@@ -319,7 +309,7 @@ const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
   }
 
   // validate if the log is editable
-  validateIsHabitLogEditable(habitLog.date);
+  validateHabitLogWriteAllowed(habitLog.date);
 
   habitLog.notes = notes;
 
@@ -335,7 +325,7 @@ const deleteHabitLogService = async (userId, habitLogId) => {
   }
 
   // validate if the log is editable
-  validateIsHabitLogEditable(habitLog.date);
+  validateHabitLogWriteAllowed(habitLog.date);
 
   await habitLog.deleteOne();
 

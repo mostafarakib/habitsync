@@ -7,7 +7,7 @@ const normalizeDate = (dateInput) => {
   return date;
 };
 
-const validateIsHabitLogEditable = (date) => {
+const validateHabitLogWriteAllowed = (date) => {
   const today = normalizeDate(new Date());
 
   const editableStartDate = new Date(today);
@@ -20,4 +20,4 @@ const validateIsHabitLogEditable = (date) => {
     throw new ApiError(400, "Logs for future dates cannot be edited");
   }
 };
-export { normalizeDate, validateIsHabitLogEditable };
+export { normalizeDate, validateHabitLogWriteAllowed };
