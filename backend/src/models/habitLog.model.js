@@ -57,47 +57,5 @@ habitLogSchema.pre("save", function (next) {
   next();
 });
 
-// calculate isCompleted based on value and habit's target
-habitLogSchema.pre("save", async function (next) {
-  try {
-    const habit = await Habit.findById(this.habit);
-
-    if (!habit) {
-      return next(new ApiError(404, "Associated habit not found"));
-    }
-
-    // boolean habit: completed if value is 1
-    if (habit.evaluationType === "boolean") {
-      this.isCompleted = this.value === 1;
-    }
-
-    // measurable habit: evaluate based on targetType and targetValue
-    if (habit.evaluationType === "measurable" && habit.targetValue !== null) {
-      const target = habit.targetValue;
-
-      switch (habit.targetType) {
-        case "atLeast":
-          this.isCompleted = this.value >= target;
-          break;
-        case "atMost":
-          this.isCompleted = this.value <= target;
-          break;
-        case "lessThan":
-          this.isCompleted = this.value < target;
-          break;
-        case "exactly":
-          this.isCompleted = this.value === target;
-          break;
-        default:
-          this.isCompleted = false; // default to not completed if targetType is invalid
-      }
-    }
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
 const HabitLog = mongoose.model("HabitLog", habitLogSchema);
 export default HabitLog;

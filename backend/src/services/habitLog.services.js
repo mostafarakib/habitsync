@@ -50,13 +50,13 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
 
     habitLog = await existingLog.save();
   } else {
-    habitLog = new HabitLog.create({
+    habitLog = await HabitLog.create({
       user: userId,
       habit: habitId,
       date: normalizedDate,
       value,
       isCompleted,
-      notes: notes || "",
+      notes: notes !== undefined ? notes : null,
     });
   }
 
@@ -176,38 +176,38 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
     }
 
     logsByDateRange.get(dateKey).set(log.habit.toString(), log);
-
-    // generate date sequence
-    const result = [];
-    let currentDate = new Date(normalizedStartDate);
-
-    while (currentDate <= normalizedEndDate) {
-      const dateKey = currentDate.toISOString().split("T")[0];
-
-      const habitLogMap = logsByDateRange.get(dateKey) || new Map();
-
-      // merge habits + logs for that date
-      const entries = habits
-        .filter((habit) => {
-          if (habit.startDate && normalizeDate(habit.startDate) > currentDate) {
-            return false;
-          }
-          if (habit.endDate && normalizeDate(habit.endDate) < currentDate) {
-            return false;
-          }
-          return true;
-        })
-        .map((habit) => {
-          const habitId = habit._id.toString();
-          const log = habitLogMap.get(habitId) || null;
-
-          return { habit, log };
-        });
-
-      result.push({ date: dateKey, entries });
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
   });
+
+  // generate date sequence
+  const result = [];
+  let currentDate = new Date(normalizedStartDate);
+
+  while (currentDate <= normalizedEndDate) {
+    const dateKey = currentDate.toISOString().split("T")[0];
+
+    const habitLogMap = logsByDateRange.get(dateKey) || new Map();
+
+    // merge habits + logs for that date
+    const entries = habits
+      .filter((habit) => {
+        if (habit.startDate && normalizeDate(habit.startDate) > currentDate) {
+          return false;
+        }
+        if (habit.endDate && normalizeDate(habit.endDate) < currentDate) {
+          return false;
+        }
+        return true;
+      })
+      .map((habit) => {
+        const habitId = habit._id.toString();
+        const log = habitLogMap.get(habitId) || null;
+
+        return { habit, log };
+      });
+
+    result.push({ date: dateKey, entries });
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
 
   return result;
 };
@@ -269,7 +269,7 @@ const updateHabitLogValueService = async (userId, habitLogId, value) => {
     throw new ApiError(400, "Value is required");
   }
 
-  const habitLog = await HabitLog.find({ _id: habitLogId, user: userId });
+  const habitLog = await HabitLog.findOne({ _id: habitLogId, user: userId });
 
   if (!habitLog) {
     throw new ApiError(404, "Habit log not found");
