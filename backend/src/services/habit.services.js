@@ -32,9 +32,20 @@ const getHabitByIdService = async (userId, habitId) => {
 };
 
 const updateHabitService = async (userId, habitId, updateData) => {
+  // prevent updating of system-controlled fields
+  const forbiddenFields = ["user", "archived", "_id", "createdAt", "updatedAt"];
+  const filteredUpdateData = { ...updateData };
+
+  forbiddenFields.forEach((field) => {
+    if (field in filteredUpdateData) {
+      delete filteredUpdateData[field];
+    }
+  });
+
+  // update habit and return the updated document
   const habit = await Habit.findOneAndUpdate(
     { _id: habitId, user: userId },
-    updateData,
+    filteredUpdateData,
     {
       new: true,
       runValidators: true,

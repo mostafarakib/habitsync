@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Habit from "../../src/models/habit.model.js";
 import { createHabitService } from "../../src/services/habit.services.js";
 
+// habit service tests
 describe("createHabitService", () => {
   it("should create a habit successfully", async () => {
     const userId = new mongoose.Types.ObjectId();
