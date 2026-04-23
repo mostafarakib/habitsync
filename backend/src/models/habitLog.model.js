@@ -50,11 +50,10 @@ habitLogSchema.index({ habit: 1, date: 1 }, { unique: true });
 habitLogSchema.index({ user: 1, date: 1 });
 
 // normalize date to midnight for consistent querying
-habitLogSchema.pre("save", function (next) {
-  if (this.date) {
+habitLogSchema.pre("save", function () {
+  if (this.date && this.isModified("date")) {
     this.date.setHours(0, 0, 0, 0);
   }
-  next();
 });
 
 const HabitLog = mongoose.model("HabitLog", habitLogSchema);
