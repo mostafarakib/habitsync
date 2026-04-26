@@ -7,7 +7,8 @@ const normalizeDate = (dateInput) => {
   return date;
 };
 
-const validateHabitLogWriteAllowed = (date) => {
+const validateHabitLogWriteAllowed = (dateInput) => {
+  const date = normalizeDate(dateInput);
   const today = normalizeDate(new Date());
 
   const editableStartDate = new Date(today);

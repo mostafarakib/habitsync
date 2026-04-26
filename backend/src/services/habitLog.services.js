@@ -4,6 +4,7 @@ import {
   ApiError,
   calculateHabitCompletion,
   normalizeDate,
+  validateHabitLogValue,
   validateHabitLogWriteAllowed,
 } from "../utils/index.js";
 
@@ -25,12 +26,18 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
     throw new ApiError(404, "Habit not found");
   }
 
+  // validate if the value is valid
+  validateHabitLogValue(habit, value);
+
+  // validate if the log is editable
+  validateHabitLogWriteAllowed(date);
+
   if (habit.archived) {
     throw new ApiError(400, "Cannot log an archived habit");
   }
 
+  // normalize the date to midnight for consistent querying
   const normalizedDate = normalizeDate(date);
-  validateHabitLogWriteAllowed(normalizedDate);
 
   let existingLog = await HabitLog.findOne({
     habit: habitId,
