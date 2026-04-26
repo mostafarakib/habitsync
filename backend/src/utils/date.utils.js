@@ -3,7 +3,7 @@ import { ApiError } from "./ApiError.js";
 // Utility function to normalize a date by setting the time to 00:00:00.000
 const normalizeDate = (dateInput) => {
   const date = new Date(dateInput);
-  date.setHours(0, 0, 0, 0);
+  date.setUTCHours(0, 0, 0, 0);
   return date;
 };
 

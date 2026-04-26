@@ -78,7 +78,11 @@ const getHabitLogsByDateService = async (userId, date) => {
   // normalize the date
   const normalizedDate = normalizeDate(date);
 
+  const nextDate = new Date(normalizedDate);
+  nextDate.setDate(nextDate.getDate() + 1);
+
   // fetch active habits for that date
+
   const habits = await Habit.find({
     user: userId,
     archived: false,
@@ -87,12 +91,14 @@ const getHabitLogsByDateService = async (userId, date) => {
       {
         $or: [
           { startDate: { $exists: false } },
+          { startDate: null },
           { startDate: { $lte: normalizedDate } },
         ],
       },
       {
         $or: [
           { endDate: { $exists: false } },
+          { endDate: null },
           { endDate: { $gte: normalizedDate } },
         ],
       },
@@ -102,9 +108,13 @@ const getHabitLogsByDateService = async (userId, date) => {
     .lean();
 
   // fetch logs for those habits on that date
+
   const logs = await HabitLog.find({
     user: userId,
-    date: normalizedDate,
+    date: {
+      $gte: normalizedDate,
+      $lt: nextDate,
+    },
   }).lean();
 
   // map logs by habit ID for easy lookup
