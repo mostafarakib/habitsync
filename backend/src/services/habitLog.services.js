@@ -29,7 +29,7 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
   // validate if the value is valid
   validateHabitLogValue(habit, value);
 
-  // validate if the log is editable
+  // validate if the log date is within allowed range (not in the future and not more than 30 days old)
   validateHabitLogWriteAllowed(date);
 
   if (habit.archived) {
@@ -39,35 +39,46 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
   // normalize the date to midnight for consistent querying
   const normalizedDate = normalizeDate(date);
 
-  let existingLog = await HabitLog.findOne({
-    habit: habitId,
-    date: normalizedDate,
-  });
-
   const isCompleted = calculateHabitCompletion(habit, value);
 
-  let habitLog;
+  const updateFields = {
+    user: userId,
+    value,
+    isCompleted,
+  };
 
-  if (existingLog) {
-    // preserve existing notes if new notes are not provided
-    const updatedNotes = notes !== undefined ? notes : existingLog.notes;
-    existingLog.value = value;
-    existingLog.isCompleted = isCompleted;
-    existingLog.notes = updatedNotes;
-
-    habitLog = await existingLog.save();
-  } else {
-    habitLog = await HabitLog.create({
-      user: userId,
-      habit: habitId,
-      date: normalizedDate,
-      value,
-      isCompleted,
-      notes: notes !== undefined ? notes : null,
-    });
+  if (notes !== undefined) {
+    updateFields.notes = notes;
   }
 
+  const habitLog = await HabitLog.findOneAndUpdate(
+    {
+      habit: habitId,
+      date: normalizedDate,
+    },
+    { $set: updateFields },
+    { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
+  );
+
   return habitLog;
+};
+
+// Service to bulk upsert habit logs
+const bulkUpsertHabitLogsService = async (userId, logs) => {
+  if (!Array.isArray(logs) || logs.length === 0) {
+    throw new ApiError(400, "Logs array is required and cannot be empty");
+  }
+
+  const results = await Promise.all(
+    logs.map(async ({ habitId, date, value, notes }) => {
+      if (!habitId || !date) {
+        throw new ApiError(400, "habitId and date are required");
+      }
+      return upsertHabitLogService(userId, habitId, date, value, notes);
+    })
+  );
+
+  return results;
 };
 
 const getHabitLogsByDateService = async (userId, date) => {
@@ -77,6 +88,12 @@ const getHabitLogsByDateService = async (userId, date) => {
 
   // normalize the date
   const normalizedDate = normalizeDate(date);
+
+  const today = normalizeDate(new Date());
+
+  if (normalizedDate > today) {
+    throw new ApiError(400, "Cannot retrieve logs for future dates");
+  }
 
   const nextDate = new Date(normalizedDate);
   nextDate.setDate(nextDate.getDate() + 1);
@@ -423,6 +440,7 @@ const getHabitStreakService = async (userId, habitId) => {
 };
 export {
   upsertHabitLogService,
+  bulkUpsertHabitLogsService,
   getHabitLogsByDateService,
   getHabitLogsByDateRangeService,
   getHabitLogsByHabitService,

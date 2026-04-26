@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
+  bulkUpsertHabitLogs,
   deleteHabitLog,
   getHabitLogById,
   getHabitLogsByDate,
@@ -18,6 +19,7 @@ const router = Router();
 router.use(verifyJWT);
 
 router.put("/", upsertHabitLog);
+router.put("/bulk", bulkUpsertHabitLogs);
 router.get("/date/:date", getHabitLogsByDate);
 router.get("/date-range", getHabitLogsByDateRange);
 router.get("/habit/:habitId", getHabitLogsByHabit);
