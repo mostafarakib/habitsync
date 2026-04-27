@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Habit from "../models/habit.model.js";
 import HabitLog from "../models/habitLog.model.js";
 import {
@@ -305,6 +306,60 @@ const getHabitLogsByHabitService = async (
   if (!habitId) {
     throw new ApiError(400, "Habit ID is required");
   }
+
+  if (!mongoose.Types.ObjectId.isValid(habitId)) {
+    throw new ApiError(400, "Invalid Habit ID");
+  }
+
+  if (!startDate && endDate) {
+    throw new ApiError(400, "Start date is required when end date is provided");
+  }
+
+  let normalizedStartDate, normalizedEndDate;
+  if (startDate) {
+    if (!validateDateFormat(startDate)) {
+      throw new ApiError(400, "Invalid start date format");
+    }
+
+    const today = normalizeDate(new Date());
+    normalizedStartDate = normalizeDate(startDate);
+
+    if (normalizedStartDate > today) {
+      throw new ApiError(400, "Start date cannot be in the future");
+    }
+
+    if (endDate) {
+      if (!validateDateFormat(endDate)) {
+        throw new ApiError(400, "Invalid end date format");
+      }
+
+      normalizedEndDate = normalizeDate(endDate);
+
+      if (normalizedEndDate > today) {
+        throw new ApiError(400, "End date cannot be in the future");
+      }
+
+      if (normalizedEndDate < normalizedStartDate) {
+        throw new ApiError(400, "End date cannot be before start date");
+      }
+
+      const diffInDays = Math.round(
+        (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffInDays > 30) {
+        throw new ApiError(400, "Date range cannot exceed 30 days");
+      } else {
+        // default endDate to 30 days from startDate, capped at today
+        const thirtyDaysFromStart = new Date(normalizedStartDate);
+        thirtyDaysFromStart.setDate(thirtyDaysFromStart.getDate() + 30);
+
+        normalizedEndDate =
+          thirtyDaysFromStart > today ? today : thirtyDaysFromStart;
+      }
+    }
+  }
+
   // validate habit exists and belongs to user
   const habit = await Habit.findOne({ _id: habitId, user: userId });
 
@@ -316,27 +371,12 @@ const getHabitLogsByHabitService = async (
     user: userId,
     habit: habitId,
   };
-  // validate date range if provided
 
-  if (startDate && endDate) {
-    const normalizedStartDate = normalizeDate(startDate);
-    const normalizedEndDate = normalizeDate(endDate);
+  if (normalizedStartDate && normalizedEndDate) {
+    const nextOfEndDay = new Date(normalizedEndDate);
+    nextOfEndDay.setDate(nextOfEndDay.getDate() + 1);
 
-    const diffInDays =
-      (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24);
-
-    if (diffInDays > 30) {
-      throw new ApiError(400, "Date range cannot exceed 30 days");
-    }
-
-    if (normalizedEndDate < normalizedStartDate) {
-      throw new ApiError(400, "End date cannot be before start date");
-    }
-
-    query.date = {
-      $gte: normalizedStartDate,
-      $lte: normalizedEndDate,
-    };
+    query.date = { $gte: normalizedStartDate, $lt: nextOfEndDay };
   }
 
   // fetch logs for that habit (and date range if provided)
