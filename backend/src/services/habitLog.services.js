@@ -233,9 +233,9 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
 
   logs.forEach((log) => {
     const dateKey = [
-      currentDate.getUTCFullYear(),
-      String(currentDate.getUTCMonth() + 1).padStart(2, "0"),
-      String(currentDate.getUTCDate()).padStart(2, "0"),
+      log.date.getUTCFullYear(),
+      String(log.date.getUTCMonth() + 1).padStart(2, "0"),
+      String(log.date.getUTCDate()).padStart(2, "0"),
     ].join("-"); // use only date part as key
 
     if (!logsByDateRange.has(dateKey)) {
