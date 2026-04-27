@@ -21,4 +21,8 @@ const validateHabitLogWriteAllowed = (dateInput) => {
     throw new ApiError(400, "Logs for future dates cannot be edited");
   }
 };
-export { normalizeDate, validateHabitLogWriteAllowed };
+
+const validateDateFormat = (date) => {
+  return !isNaN(new Date(date).getTime());
+};
+export { normalizeDate, validateHabitLogWriteAllowed, validateDateFormat };

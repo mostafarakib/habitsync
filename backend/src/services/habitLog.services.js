@@ -6,6 +6,7 @@ import {
   normalizeDate,
   validateHabitLogValue,
   validateHabitLogWriteAllowed,
+  validateDateFormat,
 } from "../utils/index.js";
 
 // Create or update a habit log for a specific date
@@ -86,6 +87,10 @@ const getHabitLogsByDateService = async (userId, date) => {
     throw new ApiError(400, "Date is required");
   }
 
+  if (!validateDateFormat(date)) {
+    throw new ApiError(400, "Invalid date format");
+  }
+
   // normalize the date
   const normalizedDate = normalizeDate(date);
 
@@ -161,34 +166,65 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
     throw new ApiError(400, "Start date and end date are required");
   }
 
+  if (!validateDateFormat(startDate) || !validateDateFormat(endDate)) {
+    throw new ApiError(400, "Invalid date format");
+  }
+
+  const today = normalizeDate(new Date());
+
   const normalizedStartDate = normalizeDate(startDate);
   const normalizedEndDate = normalizeDate(endDate);
 
-  const diffInDays =
-    (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24);
+  if (normalizedEndDate < normalizedStartDate) {
+    throw new ApiError(400, "End date cannot be before start date");
+  }
+
+  if (normalizedStartDate > today || normalizedEndDate > today) {
+    throw new ApiError(400, "Cannot retrieve logs for future dates");
+  }
+
+  const diffInDays = Math.round(
+    (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24)
+  );
 
   if (diffInDays > 30) {
     throw new ApiError(400, "Date range cannot exceed 30 days");
-  }
-
-  if (normalizedEndDate < normalizedStartDate) {
-    throw new ApiError(400, "End date cannot be before start date");
   }
 
   // fetch active habits
   const habits = await Habit.find({
     user: userId,
     archived: false,
+
+    $and: [
+      {
+        $or: [
+          { startDate: { $exists: false } },
+          { startDate: null },
+          { startDate: { $lte: normalizedEndDate } },
+        ],
+      },
+      {
+        $or: [
+          { endDate: { $exists: false } },
+          { endDate: null },
+          { endDate: { $gte: normalizedStartDate } },
+        ],
+      },
+    ],
   })
     .sort({ createdAt: 1 })
     .lean();
+
+  const nextOfEndDate = new Date(normalizedEndDate);
+  nextOfEndDate.setDate(nextOfEndDate.getDate() + 1);
 
   // fetch logs for those habits in that date range
   const logs = await HabitLog.find({
     user: userId,
     date: {
       $gte: normalizedStartDate,
-      $lte: normalizedEndDate,
+      $lt: nextOfEndDate,
     },
   }).lean();
 
@@ -196,7 +232,11 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
   const logsByDateRange = new Map();
 
   logs.forEach((log) => {
-    const dateKey = log.date.toISOString().split("T")[0]; // use only date part as key
+    const dateKey = [
+      currentDate.getUTCFullYear(),
+      String(currentDate.getUTCMonth() + 1).padStart(2, "0"),
+      String(currentDate.getUTCDate()).padStart(2, "0"),
+    ].join("-"); // use only date part as key
 
     if (!logsByDateRange.has(dateKey)) {
       logsByDateRange.set(dateKey, new Map());
@@ -205,22 +245,39 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
     logsByDateRange.get(dateKey).set(log.habit.toString(), log);
   });
 
+  const habitsWithNormalizedDates = habits.map((habit) => ({
+    ...habit,
+    _normalizedStartDate: habit.startDate
+      ? normalizeDate(habit.startDate)
+      : null,
+    _normalizedEndDate: habit.endDate ? normalizeDate(habit.endDate) : null,
+  }));
   // generate date sequence
   const result = [];
   let currentDate = new Date(normalizedStartDate);
 
   while (currentDate <= normalizedEndDate) {
-    const dateKey = currentDate.toISOString().split("T")[0];
+    const dateKey = [
+      currentDate.getUTCFullYear(),
+      String(currentDate.getUTCMonth() + 1).padStart(2, "0"),
+      String(currentDate.getUTCDate()).padStart(2, "0"),
+    ].join("-");
 
     const habitLogMap = logsByDateRange.get(dateKey) || new Map();
 
     // merge habits + logs for that date
-    const entries = habits
+    const entries = habitsWithNormalizedDates
       .filter((habit) => {
-        if (habit.startDate && normalizeDate(habit.startDate) > currentDate) {
+        if (
+          habit._normalizedStartDate &&
+          habit._normalizedStartDate > currentDate
+        ) {
           return false;
         }
-        if (habit.endDate && normalizeDate(habit.endDate) < currentDate) {
+        if (
+          habit._normalizedEndDate &&
+          habit._normalizedEndDate < currentDate
+        ) {
           return false;
         }
         return true;
