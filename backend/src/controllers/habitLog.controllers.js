@@ -92,7 +92,7 @@ const getHabitLogsByHabit = asyncHandler(async (req, res) => {
 const updateHabitLogValue = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { id } = req.params;
-  const { value } = req.body;
+  const value = req.body?.value;
 
   const habitLog = await updateHabitLogValueService(userId, id, value);
 
@@ -106,7 +106,7 @@ const updateHabitLogValue = asyncHandler(async (req, res) => {
 const updateHabitLogNotes = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { id } = req.params;
-  const { notes } = req.body;
+  const notes = req.body?.notes;
 
   const habitLog = await updateHabitLogNotesService(userId, id, notes);
 

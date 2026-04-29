@@ -390,6 +390,10 @@ const updateHabitLogValueService = async (userId, habitLogId, value) => {
     throw new ApiError(400, "Value is required");
   }
 
+  if (!mongoose.Types.ObjectId.isValid(habitLogId)) {
+    throw new ApiError(400, "Invalid Habit Log ID");
+  }
+
   const habitLog = await HabitLog.findOne({ _id: habitLogId, user: userId });
 
   if (!habitLog) {
@@ -413,20 +417,29 @@ const updateHabitLogValueService = async (userId, habitLogId, value) => {
   habitLog.isCompleted = calculateHabitCompletion(habit, value);
 
   await habitLog.save();
+
   return habitLog;
 };
 
 const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
+  if (!habitLogId) {
+    throw new ApiError(400, "Habit Log ID is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(habitLogId)) {
+    throw new ApiError(400, "Invalid Habit Log ID");
+  }
+
   if (notes === undefined) {
     throw new ApiError(400, "Notes are required");
   }
 
-  if (typeof notes !== "string") {
-    throw new ApiError(400, "Notes must be a string");
-  }
-
   if (notes === null) {
     notes = "";
+  }
+
+  if (typeof notes !== "string") {
+    throw new ApiError(400, "Notes must be a string");
   }
 
   if (notes.length > 200) {
@@ -445,10 +458,19 @@ const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
   habitLog.notes = notes;
 
   await habitLog.save();
+
   return habitLog;
 };
 
 const deleteHabitLogService = async (userId, habitLogId) => {
+  if (!habitLogId) {
+    throw new ApiError(400, "Habit Log ID is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(habitLogId)) {
+    throw new ApiError(400, "Invalid Habit Log ID");
+  }
+
   const habitLog = await HabitLog.findOne({ _id: habitLogId, user: userId });
 
   if (!habitLog) {
@@ -467,13 +489,23 @@ const deleteHabitLogService = async (userId, habitLogId) => {
 };
 
 const getHabitLogByIdService = async (userId, habitLogId) => {
+  if (!habitLogId) {
+    throw new ApiError(400, "Habit Log ID is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(habitLogId)) {
+    throw new ApiError(400, "Invalid Habit Log ID");
+  }
+
   const habitLog = await HabitLog.findOne({
     _id: habitLogId,
     user: userId,
-  }).populate({
-    path: "habit",
-    select: "name evaluationType targetType targetValue targetUnit archived",
-  });
+  })
+    .populate({
+      path: "habit",
+      select: "name evaluationType targetType targetValue targetUnit archived",
+    })
+    .lean();
 
   if (!habitLog) {
     throw new ApiError(404, "Habit log not found");
