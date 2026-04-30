@@ -515,6 +515,13 @@ const getHabitLogByIdService = async (userId, habitLogId) => {
 };
 
 const getHabitStreakService = async (userId, habitId) => {
+  if (!habitId) {
+    throw new ApiError(400, "Habit ID is required");
+  }
+  if (!mongoose.Types.ObjectId.isValid(habitId)) {
+    throw new ApiError(400, "Invalid Habit ID");
+  }
+
   const habit = await Habit.findOne({ _id: habitId, user: userId });
 
   if (!habit) {
@@ -528,7 +535,8 @@ const getHabitStreakService = async (userId, habitId) => {
     isCompleted: true,
   })
     .sort({ date: -1 })
-    .select("date");
+    .select("date")
+    .lean();
 
   if (completedLogs.length === 0) {
     return {
@@ -537,29 +545,72 @@ const getHabitStreakService = async (userId, habitId) => {
     };
   }
 
-  let streak = 0;
-  let currentDate = normalizeDate(new Date());
-  let logIndex = 0;
+  const completedDateSet = new Set(
+    completedLogs.map((log) => normalizeDate(log.date).toISOString())
+  );
 
-  // if today not completed, start from yesterday
-  if (
-    normalizeDate(completedLogs[0].date).getTime() !== currentDate.getTime()
-  ) {
-    currentDate.setDate(currentDate.getDate() - 1);
+  //check if a date is a scheduled date for the habit
+  const isScheduledDate = (date) => {
+    const { type, daysOfWeek } = habit.frequency;
+
+    if (type === "daily") {
+      return true;
+    }
+    if (type === "weekly") {
+      // if daysOfWeek is specified, only those days count
+      if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
+        return daysOfWeek.includes(date.getUTCDay());
+      }
+      return true; // if no specific days, all days count
+    }
+    if (type === "monthly") {
+      // for monthly habits, we consider the habit scheduled on the same day of month as the start date
+      const scheduledDay = normalizeDate(habit.startDate).getUTCDate();
+      return date.getUTCDate() === scheduledDay;
+    }
+
+    return false;
+  };
+
+  const today = normalizeDate(new Date());
+  const mostRecentLogDate = normalizeDate(completedLogs[0].date);
+
+  // always check for missed scheduled days
+  let checkDate = new Date(today);
+  checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+
+  while (checkDate > mostRecentLogDate) {
+    if (isScheduledDate(checkDate)) {
+      return {
+        habitId,
+        streak: 0,
+      };
+    }
+    checkDate.setUTCDate(checkDate.getUTCDate() - 1);
   }
 
-  // iterate from backwards until we find a non-completed day
-  while (logIndex < completedLogs.length) {
-    const logDate = normalizeDate(completedLogs[logIndex].date);
+  // count consecutive completed logs from the most recent one until we find a break in the streak
+  let streak = 0;
+  let currentDate = new Date(mostRecentLogDate);
 
-    if (logDate.getTime() === currentDate.getTime()) {
-      streak++;
+  while (true) {
+    if (isScheduledDate(currentDate)) {
+      const dateKey = normalizeDate(currentDate).toISOString();
 
-      currentDate.setDate(currentDate.getDate() - 1);
-      logIndex++;
-    } else {
+      if (completedDateSet.has(dateKey)) {
+        streak++;
+      } else {
+        // scheduled day with no completed log — streak is broken
+        break;
+      }
+    }
+
+    // if we have reached the habit start date, stop counting further back
+    if (currentDate <= normalizeDate(habit.startDate)) {
       break;
     }
+
+    currentDate.setUTCDate(currentDate.getUTCDate() - 1);
   }
 
   return {
@@ -567,6 +618,7 @@ const getHabitStreakService = async (userId, habitId) => {
     streak,
   };
 };
+
 export {
   upsertHabitLogService,
   bulkUpsertHabitLogsService,

@@ -52,7 +52,7 @@ habitLogSchema.index({ user: 1, date: 1 });
 // normalize date to midnight for consistent querying
 habitLogSchema.pre("save", function () {
   if (this.date && this.isModified("date")) {
-    this.date.setHours(0, 0, 0, 0);
+    this.date.setUTCHours(0, 0, 0, 0);
   }
 });
 

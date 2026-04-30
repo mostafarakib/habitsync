@@ -26,7 +26,7 @@ router.get("/habit/:habitId", getHabitLogsByHabit);
 router.patch("/:id/value", updateHabitLogValue);
 router.patch("/:id/notes", updateHabitLogNotes);
 router.delete("/:id", deleteHabitLog);
-router.get("/streak/:habitId", getHabitStreak);
 router.get("/:id", getHabitLogById);
+router.get("/streak/:habitId", getHabitStreak);
 
 export default router;
