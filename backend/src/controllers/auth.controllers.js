@@ -54,4 +54,18 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "User logged out successfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = req.user; // Assuming the user is attached to the request by the verifyJWT middleware
+
+  if (!user) {
+    return res
+      .status(404)
+      .json(new ApiResponse(404, "User not found. Please log in again."));
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Current user retrieved successfully", user));
+});
+
+export { registerUser, loginUser, logoutUser, getCurrentUser };

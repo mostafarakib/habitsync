@@ -9,20 +9,21 @@ export interface ApiResponse<T> {
 
 export interface AuthUser {
   _id: string;
-  name: string;
+  fullName: string;
   email: string;
-  avatar?: string | null;
+  avatar?: string | null; // cloudinary URL
 }
+
 export interface LoginPayload {
   email: string;
   password: string;
 }
 
 export interface RegisterPayload {
-  name: string;
+  fullName: string;
   email: string;
   password: string;
-  avatar?: string | null;
+  avatar?: File | null; // sends file to upload to cloudinary
 }
 
 export interface CreateHabitPayload {
