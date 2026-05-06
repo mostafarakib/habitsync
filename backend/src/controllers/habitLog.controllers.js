@@ -55,13 +55,8 @@ const getHabitLogsByDate = asyncHandler(async (req, res) => {
 });
 
 const getHabitLogsByDateRange = asyncHandler(async (req, res) => {
-  const { habitId } = req.params;
   const userId = req.user._id;
   const { startDate, endDate } = req.query;
-
-  if (!habitId) {
-    throw new ApiError(400, "Habit ID is required");
-  }
 
   const data = await getHabitLogsByDateRangeService(userId, startDate, endDate);
 

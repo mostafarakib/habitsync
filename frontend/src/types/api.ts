@@ -53,11 +53,3 @@ export interface UpsertLogPayload {
   value: number;
   notes?: string | null;
 }
-
-export interface HabitLogValueUpdatePayload {
-  value: number | boolean; // Depending on the habit's evaluationType
-}
-
-export interface HabitLogNotesUpdatePayload {
-  notes: string | null;
-}

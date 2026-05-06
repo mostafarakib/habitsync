@@ -16,20 +16,20 @@ export const authApi = {
       body: form,
     });
   },
-  login: async (data: LoginPayload) => {
-    return apiFetch<AuthUser>("/auth/login", {
+
+  login: (data: LoginPayload) =>
+    apiFetch<AuthUser>("/auth/login", {
       method: "POST",
       body: JSON.stringify(data),
-    });
-  },
-  logout: async () => {
-    return apiFetch<AuthUser>("/auth/logout", {
+    }),
+
+  logout: () =>
+    apiFetch<AuthUser>("/auth/logout", {
       method: "POST",
-    });
-  },
-  getCurrentUser: async () => {
-    return apiFetch<AuthUser>("/auth/current-user", {
+    }),
+
+  getCurrentUser: () =>
+    apiFetch<AuthUser>("/auth/current-user", {
       method: "GET",
-    });
-  },
+    }),
 };
