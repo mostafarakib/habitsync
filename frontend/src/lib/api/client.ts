@@ -1,17 +1,8 @@
 import { ApiResponse } from "@/types";
+import { ApiError } from "../errors/ApiError";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-
-export class ApiError extends Error {
-  constructor(
-    public statusCode: number,
-    public message: string,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
 
 export async function apiFetch<T>(
   path: string,
