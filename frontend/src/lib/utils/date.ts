@@ -1,34 +1,45 @@
 import {
   addDays,
   format,
-  getDate,
-  getDay,
   isAfter,
   isBefore,
-  isToday,
   parseISO,
-  startOfDay,
   subDays,
 } from "date-fns";
 
-// ----- Formatting --------
-// Converts a Date to the API-expected format: "YYYY-MM-DD"
-export function toApiDate(date: Date): string {
-  return format(date, "yyyy-MM-dd");
+// Normalize a date to UTC midnight
+export function normalizeUtcDate(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
 }
 
-//Parses an API date string back to a Date object
+// Converts Date -> "YYYY-MM-DD" in UTC
+export function toApiDate(date: Date): string {
+  return normalizeUtcDate(date).toISOString().split("T")[0];
+}
+
+//Parses an API date string  -> Date
 export function fromApiDate(dateStr: string): Date {
   return parseISO(dateStr);
 }
 
-// "Monday, May 7" — used in DateNavigator header
+// "Today" check using UTC
+export function isTodayUtc(date: Date): boolean {
+  const today = normalizeUtcDate(new Date());
+  const target = normalizeUtcDate(date);
+
+  return today.getTime() === target.getTime();
+}
+
+// "Monday, May 7"
 export function toDisplayDate(date: Date): string {
-  if (isToday(date)) return "Today";
+  if (isTodayUtc(date)) return "Today";
+
   return format(date, "EEEE, MMM d");
 }
 
-// "May 7" — used in compact date chips
+// "May 7"
 export function toShortDate(date: Date): string {
   return format(date, "MMM d");
 }
@@ -36,20 +47,22 @@ export function toShortDate(date: Date): string {
 // ------- Validation --------
 // Rules: not in the future, not older than 30 days
 export function isEditable(date: Date): boolean {
-  const today = startOfDay(new Date());
-  const target = startOfDay(date);
+  const today = normalizeUtcDate(new Date());
+  const target = normalizeUtcDate(date);
 
   if (isAfter(target, today)) {
     return false;
   }
 
   const thirtyDaysAgo = subDays(today, 30);
+
   return !isBefore(target, thirtyDaysAgo);
 }
 
 export function isFutureDate(date: Date): boolean {
-  const today = startOfDay(new Date());
-  const target = startOfDay(date);
+  const today = normalizeUtcDate(new Date());
+  const target = normalizeUtcDate(date);
+
   return isAfter(target, today);
 }
 
@@ -63,6 +76,12 @@ export function getNextDay(date: Date): Date {
   return addDays(date, 1);
 }
 
-// Re-exports (so nothing else imports from date-fns directly)
+// UTC helpers
 
-export { isToday, getDay, getDate };
+export function getUtcDay(date: Date): number {
+  return date.getUTCDay();
+}
+
+export function getUtcDate(date: Date): number {
+  return date.getUTCDate();
+}

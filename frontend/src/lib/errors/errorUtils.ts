@@ -1,4 +1,5 @@
 import { ApiError } from "./ApiError";
+
 export function getErrorMessage(error: unknown): string {
   // custom api error
   if (error instanceof ApiError) {
