@@ -1,4 +1,4 @@
-import type { Habit } from "@/types";
+import type { Habit, HabitLog } from "@/types";
 import { parseISO } from "date-fns";
 import { getUtcDate, getUtcDay } from "./date";
 
@@ -75,5 +75,28 @@ function ordinalSuffix(n: number): string {
       return "rd";
     default:
       return "th";
+  }
+}
+
+export function isHabitCompleted(habit: Habit, log: HabitLog | null): boolean {
+  if (!log) return false;
+
+  if (habit.evaluationType === "boolean") {
+    return isBooleanDone(log.value);
+  }
+
+  if (habit.targetValue === null) return log.value > 0;
+
+  switch (habit.targetType) {
+    case "atLeast":
+      return log.value >= habit.targetValue;
+    case "atMost":
+      return log.value <= habit.targetValue;
+    case "lessThan":
+      return log.value < habit.targetValue;
+    case "exactly":
+      return log.value === habit.targetValue;
+    default:
+      return false;
   }
 }
