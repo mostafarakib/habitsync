@@ -16,7 +16,7 @@ export const logsApi = {
     }),
 
   bulkUpsert: (data: UpsertLogPayload[]) =>
-    apiFetch<HabitLog>("/habit-logs/bulk", {
+    apiFetch<HabitLog[]>("/habit-logs/bulk", {
       method: "PUT",
       body: JSON.stringify({ logs: data }),
     }),
