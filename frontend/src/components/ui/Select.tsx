@@ -67,7 +67,7 @@ export function Select({
             "hover:border-neutral-600",
             "focus:border-violet-500 focus:ring-1 focus:ring-violet-500",
             "disabled:opacity-50 disabled:cursor-not-allowed",
-            "data-[placeholder]:text-neutral-500",
+            "data-placeholder:text-neutral-500",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
             className,
           )}
@@ -84,7 +84,7 @@ export function Select({
             position="popper"
             sideOffset={4}
             className={cn(
-              "z-50 w-[var(--radix-select-trigger-width)]",
+              "z-50 w-(--radix-select-trigger-width)",
               "rounded-lg p-1 shadow-xl",
               "bg-neutral-800 border border-neutral-700",
               "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
@@ -99,7 +99,7 @@ export function Select({
                   className={cn(
                     "flex items-center justify-between px-3 py-2 rounded-md",
                     "text-sm text-neutral-100 cursor-pointer outline-none",
-                    "data-[highlighted]:bg-neutral-700",
+                    "data-highlighted:bg-neutral-700",
                     "data-[state=checked]:text-violet-400",
                   )}
                 >
