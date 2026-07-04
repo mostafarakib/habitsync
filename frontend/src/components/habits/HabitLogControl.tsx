@@ -92,8 +92,10 @@ function MeasurableControl({
   useEffect(() => {
     const serverValue = currentValue > 0 ? String(currentValue) : "";
 
-    setLocalValue(serverValue);
-  }, [currentValue]);
+    if (localValue !== serverValue) {
+      setLocalValue(serverValue);
+    }
+  }, [currentValue, localValue]);
 
   // Cleanup pending debounce timer
   useEffect(() => {
