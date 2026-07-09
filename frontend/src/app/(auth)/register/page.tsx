@@ -1,6 +1,6 @@
-import { useCurrentUser, useLogin } from "@/lib/hooks/useAuth";
-import { useForm } from "react-hook-form";
-import type { LoginPayload } from "@/types";
+import { useRegister, useCurrentUser } from "@/lib/hooks/useAuth";
+import { useForm, useWatch } from "react-hook-form";
+import type { RegisterPayload } from "@/types";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Flame } from "lucide-react";
@@ -8,32 +8,52 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function LoginPage() {
-  const { mutate: login, isPending } = useLogin();
-  const { data: user } = useCurrentUser();
-  const router = useRouter();
+interface RegisterFormData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export default function RegisterPage() {
+  const { mutate: register_, isPending } = useRegister();
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
-  } = useForm<LoginPayload>({
+  } = useForm<RegisterFormData>({
     defaultValues: {
+      fullName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  function onSubmit(data: LoginPayload) {
-    const payload = { email: data.email.trim(), password: data.password };
-    login(payload);
+  const { data: user } = useCurrentUser();
+  const router = useRouter();
+
+  const password = useWatch({
+    control,
+    name: "password",
+  });
+
+  function onSubmit(data: RegisterFormData) {
+    const payload: RegisterPayload = {
+      fullName: data.fullName.trim(),
+      email: data.email.trim(),
+      password: data.password,
+    };
+    register_(payload);
   }
 
   useEffect(() => {
     if (user) {
       router.replace("/dashboard");
     }
-  }, [user, router]);
+  }, [router, user]);
 
   if (user) return null;
 
@@ -47,9 +67,11 @@ export default function LoginPage() {
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight text-neutral-100">
-              HabitSync
+              Create account
             </h1>
-            <p className="text-sm text-neutral-500 mt-1">Track what matters</p>
+            <p className="text-sm text-neutral-500 mt-1">
+              Start building better habits
+            </p>
           </div>
         </div>
 
@@ -60,6 +82,24 @@ export default function LoginPage() {
             className="flex flex-col gap-4"
             noValidate
           >
+            <Input
+              label="Full name"
+              placeholder="Your name"
+              autoComplete="name"
+              error={errors.fullName?.message}
+              {...register("fullName", {
+                required: "Full name is required",
+                minLength: {
+                  value: 2,
+                  message: "Name must be at least 2 characters",
+                },
+                maxLength: {
+                  value: 100,
+                  message: "Name is too long",
+                },
+              })}
+            />
+
             <Input
               label="Email"
               type="email"
@@ -82,7 +122,7 @@ export default function LoginPage() {
               label="Password"
               type="password"
               placeholder="••••••••"
-              autoComplete="current-password"
+              autoComplete="new-password"
               error={errors.password?.message}
               {...register("password", {
                 required: "Password is required",
@@ -93,6 +133,19 @@ export default function LoginPage() {
               })}
             />
 
+            <Input
+              label="Confirm password"
+              type="password"
+              placeholder="••••••••"
+              autoComplete="new-password"
+              error={errors.confirmPassword?.message}
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (value) =>
+                  value === password || "Passwords do not match",
+              })}
+            />
+
             <Button
               type="submit"
               variant="primary"
@@ -100,17 +153,17 @@ export default function LoginPage() {
               loading={isPending}
               className="w-full mt-2"
             >
-              Sign in
+              Create account
             </Button>
           </form>
 
           <p className="text-center text-sm text-neutral-500 mt-5">
-            Don&apos;t have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="text-violet-400 font-medium hover:text-violet-300 transition-colors"
             >
-              Sign up
+              Sign in
             </Link>
           </p>
         </div>
