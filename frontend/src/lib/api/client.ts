@@ -19,13 +19,6 @@ export async function apiFetch<T>(
     ...options,
   });
 
-  if (res.status === 401) {
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-    }
-    throw new ApiError(401, "Unauthorized");
-  }
-
   let json: ApiResponse<T>;
 
   try {

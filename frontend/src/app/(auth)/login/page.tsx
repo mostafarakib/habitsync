@@ -1,3 +1,5 @@
+"use client";
+
 import { useCurrentUser, useLogin } from "@/lib/hooks/useAuth";
 import { useForm } from "react-hook-form";
 import type { LoginPayload } from "@/types";

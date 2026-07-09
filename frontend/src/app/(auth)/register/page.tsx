@@ -1,3 +1,5 @@
+"use client";
+
 import { useRegister, useCurrentUser } from "@/lib/hooks/useAuth";
 import { useForm, useWatch } from "react-hook-form";
 import type { RegisterPayload } from "@/types";
