@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -69,6 +69,7 @@ interface HabitFormProps {
 export function HabitForm({ onSuccess }: HabitFormProps) {
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [daysError, setDaysError] = useState("");
+  const [isFlexible, setIsFlexible] = useState(false);
 
   const createHabit = useCreateHabit();
 
@@ -103,6 +104,7 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
 
   function toggleDay(day: number) {
     setDaysError("");
+    setIsFlexible(false); // selecting a day disables flexible option
 
     setSelectedDays((prev) =>
       prev.includes(day)
@@ -112,8 +114,12 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
   }
 
   async function onSubmit(data: FormValues) {
-    if (data.frequencyType === "weekly" && selectedDays.length === 0) {
-      setDaysError("Please select at least one day.");
+    if (
+      data.frequencyType === "weekly" &&
+      !isFlexible &&
+      selectedDays.length === 0
+    ) {
+      setDaysError("Please select at least one day or choose not scheduled.");
       return;
     }
 
@@ -124,7 +130,11 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
       startDate: toApiDate(new Date()),
       frequency: {
         type: data.frequencyType,
-        daysOfWeek: data.frequencyType === "weekly" ? selectedDays : undefined,
+        daysOfWeek:
+          data.frequencyType === "weekly" && !isFlexible
+            ? selectedDays
+            : undefined,
+        flexible: data.frequencyType === "weekly" ? isFlexible : undefined,
       },
       evaluationType: data.evaluationType,
       targetType:
@@ -144,10 +154,23 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
         reset();
         setSelectedDays([]);
         setDaysError("");
+        setIsFlexible(false);
         onSuccess?.();
       },
     });
   }
+
+  // Reset day selection and flexible when frequency type changes
+  const previousFrequencyType = useRef(frequencyType);
+
+  useEffect(() => {
+    if (previousFrequencyType.current !== frequencyType) {
+      setSelectedDays([]);
+      setIsFlexible(false);
+      setDaysError("");
+      previousFrequencyType.current = frequencyType;
+    }
+  }, [frequencyType]);
 
   return (
     <form
@@ -214,6 +237,8 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
       {frequencyType === "weekly" && (
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-neutral-300">Which days?</p>
+
+          {/* day buttons */}
           <div className="flex gap-2">
             {DAYS.map((day) => {
               const active = selectedDays.includes(day.value);
@@ -225,12 +250,14 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
                   title={day.label}
                   aria-label={day.label}
                   aria-pressed={active}
+                  disabled={isFlexible}
                   onClick={() => toggleDay(day.value)}
                   className={cn(
                     "h-9 w-9 rounded-full text-xs font-semibold transition-all",
                     active
                       ? "bg-violet-600 text-white"
                       : "bg-neutral-800 text-neutral-400 border border-neutral-700 hover:border-neutral-500",
+                    isFlexible && "opacity-40 cursor-not-allowed",
                   )}
                 >
                   {day.short}
@@ -238,6 +265,25 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
               );
             })}
           </div>
+
+          {/* not scheduled button  */}
+          <label className="flex items-center gap-2 mt-1 cursor-pointer w-fit">
+            <input
+              type="checkbox"
+              checked={isFlexible}
+              onChange={(e) => {
+                setIsFlexible(e.target.checked);
+                if (e.target.checked) {
+                  setSelectedDays([]); // clear days when flexible is selected
+                  setDaysError("");
+                }
+              }}
+              className="h-4 w-4 rounded border-neutral-600 bg-neutral-800 accent-violet-600 cursor-pointer"
+            />
+            <span className="text-sm text-neutral-400">
+              Not scheduled — Flexible habit (can be done any day)
+            </span>
+          </label>
 
           {daysError && <p className="text-xs text-red-400">{daysError}</p>}
         </div>

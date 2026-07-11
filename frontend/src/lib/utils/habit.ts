@@ -3,24 +3,31 @@ import { parseISO } from "date-fns";
 import { getUtcDate, getUtcDay } from "./date";
 
 export function isScheduledOnDate(habit: Habit, date: Date): boolean {
-  const { type, daysOfWeek } = habit.frequency;
+  const { type, daysOfWeek, flexible } = habit.frequency;
 
-  // daily habits are always scheduled
   if (type === "daily") return true;
 
   if (type === "weekly") {
-    // if no specific days are set then it is scheduled on everyday
-    if (!daysOfWeek || daysOfWeek.length === 0) return true;
-
+    // flexible weekly → appears every day like daily
+    if (flexible) return true;
+    // scheduled weekly → only on selected days
+    if (!daysOfWeek || daysOfWeek.length === 0) return false;
     return daysOfWeek.includes(getUtcDay(date));
   }
 
-  // Scheduled on the same day-of-month as the habit startDate
-  if (type === "monthly") {
-    const scheduledDay = getUtcDate(parseISO(habit.startDate));
+  // monthly → appears every day (flexible by default)
+  if (type === "monthly") return true;
+  return false;
+}
 
-    return getUtcDate(date) === scheduledDay;
-  }
+// Determines if a habit affects the main streak calculation
+// Only daily and scheduled weekly habits count toward streak
+export function isStreakRelevant(habit: Habit): boolean {
+  const { type, flexible } = habit.frequency;
+
+  if (type === "daily") return true;
+  if (type === "weekly") return !flexible;
+  if (type === "monthly") return false;
 
   return false;
 }

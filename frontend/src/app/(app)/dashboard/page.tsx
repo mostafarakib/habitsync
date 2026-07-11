@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { useDayLogs } from "@/lib/hooks/useDayLogs";
 import { cn } from "@/lib/utils/cn";
-import { isScheduledOnDate } from "@/lib/utils/habit";
+import { isScheduledOnDate, isStreakRelevant } from "@/lib/utils/habit";
 import { useDateStore } from "@/store/dateStore";
 import type { DayEntry } from "@/types";
 import { Plus } from "lucide-react";
@@ -30,8 +30,10 @@ export default function DashboardPage() {
   const [notesEntry, setNotesEntry] = useState<DayEntry | null>(null);
 
   // ── Progress summary ──────────────────────────────────────────────────────
-  const scheduledEntries = entries.filter((entry) =>
-    isScheduledOnDate(entry.habit, selectedDate),
+  const scheduledEntries = entries.filter(
+    (entry) =>
+      isScheduledOnDate(entry.habit, selectedDate) &&
+      isStreakRelevant(entry.habit),
   );
 
   const completedCount = scheduledEntries.filter(

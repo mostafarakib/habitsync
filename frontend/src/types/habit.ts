@@ -6,6 +6,7 @@ export type Priority = "low" | "normal" | "high";
 export interface Frequency {
   type: FrequencyType;
   daysOfWeek?: number[]; // For weekly frequency, 0 (Sunday) to 6 (Saturday)
+  flexible?: boolean; // indicates if the habit is flexible (not scheduled for specific days)
   interval?: number | null;
 }
 

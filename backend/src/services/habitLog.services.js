@@ -551,23 +551,22 @@ const getHabitStreakService = async (userId, habitId) => {
 
   //check if a date is a scheduled date for the habit
   const isScheduledDate = (date) => {
-    const { type, daysOfWeek } = habit.frequency;
+    const { type, daysOfWeek, flexible } = habit.frequency;
 
     if (type === "daily") {
       return true;
     }
     if (type === "weekly") {
+      // flexible weekly → never counts toward streak
+      if (flexible) return false;
       // if daysOfWeek is specified, only those days count
       if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
         return daysOfWeek.includes(date.getUTCDay());
       }
-      return true; // if no specific days, all days count
+      return false;
     }
-    if (type === "monthly") {
-      // for monthly habits, we consider the habit scheduled on the same day of month as the start date
-      const scheduledDay = normalizeDate(habit.startDate).getUTCDate();
-      return date.getUTCDate() === scheduledDay;
-    }
+    // monthly → always flexible, never counts toward streak
+    if (type === "monthly") return false;
 
     return false;
   };

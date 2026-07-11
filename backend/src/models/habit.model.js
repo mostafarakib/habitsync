@@ -42,6 +42,10 @@ const habitSchema = new Schema(
         type: [Number], // 0 (Sunday) to 6 (Saturday)
         default: undefined,
       },
+      flexible: {
+        type: Boolean,
+        default: false,
+      },
       interval: {
         type: Number,
         default: null,
