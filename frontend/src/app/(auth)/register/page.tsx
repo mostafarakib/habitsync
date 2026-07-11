@@ -34,7 +34,7 @@ export default function RegisterPage() {
     },
   });
 
-  const { data: user } = useCurrentUser();
+  const { data: user, isLoading } = useCurrentUser();
   const router = useRouter();
 
   const password = useWatch({
@@ -57,7 +57,7 @@ export default function RegisterPage() {
     }
   }, [router, user]);
 
-  if (user) return null;
+  if (isLoading || user) return null;
 
   return (
     <div className="min-h-dvh bg-neutral-950 flex items-center justify-center p-4">

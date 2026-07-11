@@ -12,7 +12,7 @@ import { useEffect } from "react";
 
 export default function LoginPage() {
   const { mutate: login, isPending } = useLogin();
-  const { data: user } = useCurrentUser();
+  const { data: user, isLoading } = useCurrentUser();
   const router = useRouter();
 
   const {
@@ -37,7 +37,7 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  if (user) return null;
+  if (isLoading || user) return null;
 
   return (
     <div className="min-h-dvh bg-neutral-950 flex items-center justify-center p-4">
