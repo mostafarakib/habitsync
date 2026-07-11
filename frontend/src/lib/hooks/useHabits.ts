@@ -32,6 +32,8 @@ export function useCreateHabit() {
     onSuccess: () => {
       // invalidate the habits list to refetch the updated list after creating a new habit
       queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
+      // Also invalidate day logs since creating a new habit may affect the logs list
+      queryClient.invalidateQueries({ queryKey: ["logs"] });
       toast.success("Habit created successfully");
     },
 

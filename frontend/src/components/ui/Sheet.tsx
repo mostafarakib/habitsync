@@ -34,6 +34,8 @@ export function Sheet({
 
         {/* Bottom sheet */}
         <Dialog.Content
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
           className={cn(
             "fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg",
             "max-h-[90vh] overflow-y-auto",
