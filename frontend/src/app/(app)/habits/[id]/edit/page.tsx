@@ -2,12 +2,13 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Flame } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { useHabit } from "@/lib/hooks/useHabits";
+import Link from "next/link";
 
 interface HabitEditPageProps {
   params: Promise<{ id: string }>;
@@ -60,21 +61,34 @@ export default function HabitEditPage({ params }: HabitEditPageProps) {
   return (
     <div className="min-h-dvh bg-neutral-950">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-neutral-800 bg-neutral-950/80 px-4 backdrop-blur-md">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleBack}
-          aria-label="Go back"
-        >
-          <ArrowLeft size={18} />
-        </Button>
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-neutral-800 bg-neutral-950/80 px-4 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={18} />
+          </Button>
 
-        <div>
+          {/* Logo — links to dashboard */}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+          >
+            <Flame size={16} className="text-violet-500" />
+            <span className="text-sm font-semibold tracking-tight text-neutral-100">
+              HabitSync
+            </span>
+          </Link>
+        </div>
+
+        <div className="flex flex-col items-end gap-0.5">
           <h1 className="text-base font-semibold text-neutral-100">
             Edit Habit
           </h1>
-          <p className="text-xs text-neutral-500 mt-0.5 truncate max-w-[250px]">
+          <p className="text-xs text-neutral-500 mt-0.5 truncate max-w-62.5">
             {habit.title}
           </p>
         </div>

@@ -97,15 +97,26 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
             <ArrowLeft size={18} />
           </Button>
 
-          <h1 className="text-base font-semibold text-neutral-100 truncate max-w-50">
-            {habit.title}
-          </h1>
+          {/* Logo — links to dashboard */}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <Flame size={16} className="text-violet-500" />
+            <span className="text-sm font-semibold tracking-tight text-neutral-100">
+              HabitSync
+            </span>
+          </Link>
 
-          {habit.archived && (
+          {/* <h1 className="text-base font-semibold text-neutral-100 truncate max-w-50">
+            {habit.title}
+          </h1> */}
+
+          {/* {habit.archived && (
             <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-500">
               Archived
             </span>
-          )}
+          )} */}
         </div>
 
         {/* Edit button */}
@@ -119,6 +130,10 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
       <main className="max-w-lg mx-auto w-full px-4 py-6 flex flex-col gap-6">
         {/* ── Habit info ── */}
         <section className="flex flex-col gap-3">
+          <h1 className="text-base font-semibold text-neutral-100 truncate max-w-50">
+            {habit.title}
+          </h1>
+
           {habit.description && (
             <p className="text-sm text-neutral-400">{habit.description}</p>
           )}
@@ -206,15 +221,15 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
             className="w-full"
           >
             {habit.archived ? (
-              <>
+              <span className="flex items-center gap-1">
                 <ArchiveRestore size={15} />
                 Unarchive habit
-              </>
+              </span>
             ) : (
-              <>
+              <span className="flex items-center gap-1">
                 <Archive size={15} />
                 Archive habit
-              </>
+              </span>
             )}
           </Button>
         </section>
