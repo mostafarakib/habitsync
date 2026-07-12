@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Toggle } from "@/components/ui/Toggle";
-import { useCreateHabit } from "@/lib/hooks/useHabits";
 import { toApiDate } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
-import type { CreateHabitPayload } from "@/types";
+import type { CreateHabitPayload, Habit } from "@/types";
+import { useCreateHabit, useUpdateHabit } from "@/lib/hooks/useHabits";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -64,14 +64,23 @@ interface FormValues {
 
 interface HabitFormProps {
   onSuccess?: () => void;
+  habit?: Habit; // if provided then go into edit mode, otherwise create mode
 }
 
-export function HabitForm({ onSuccess }: HabitFormProps) {
-  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+export function HabitForm({ onSuccess, habit }: HabitFormProps) {
+  const isEditMode = !!habit;
+
+  // Initialize selectedDays from existing habit if editing
+  const [selectedDays, setSelectedDays] = useState<number[]>(
+    habit?.frequency.daysOfWeek ?? [],
+  );
+  const [isFlexible, setIsFlexible] = useState(
+    habit?.frequency.flexible ?? false,
+  );
   const [daysError, setDaysError] = useState("");
-  const [isFlexible, setIsFlexible] = useState(false);
 
   const createHabit = useCreateHabit();
+  const updateHabit = useUpdateHabit();
 
   const {
     register,
@@ -81,14 +90,14 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      title: "",
-      description: "",
-      category: "",
-      frequencyType: "daily",
-      evaluationType: "boolean",
-      targetType: "atLeast",
-      targetValue: "",
-      targetUnit: "",
+      title: habit?.title ?? "",
+      description: habit?.description ?? "",
+      category: habit?.category ?? "",
+      frequencyType: habit?.frequency?.type ?? "daily",
+      evaluationType: habit?.evaluationType ?? "boolean",
+      targetType: habit?.targetType ?? "atLeast",
+      targetValue: habit?.targetValue != null ? String(habit.targetValue) : "",
+      targetUnit: habit?.targetUnit ?? "",
     },
   });
 
@@ -127,7 +136,7 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
       title: data.title.trim(),
       description: data.description.trim() || undefined,
       category: data.category || undefined,
-      startDate: toApiDate(new Date()),
+      startDate: habit?.startDate ?? toApiDate(new Date()),
       frequency: {
         type: data.frequencyType,
         daysOfWeek:
@@ -149,15 +158,26 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
           : undefined,
     };
 
-    createHabit.mutate(payload, {
-      onSuccess: () => {
-        reset();
-        setSelectedDays([]);
-        setDaysError("");
-        setIsFlexible(false);
-        onSuccess?.();
-      },
-    });
+    if (isEditMode && habit) {
+      updateHabit.mutate(
+        { id: habit._id, data: payload },
+        {
+          onSuccess: () => {
+            onSuccess?.();
+          },
+        },
+      );
+    } else {
+      createHabit.mutate(payload, {
+        onSuccess: () => {
+          reset();
+          setSelectedDays([]);
+          setDaysError("");
+          setIsFlexible(false);
+          onSuccess?.();
+        },
+      });
+    }
   }
 
   // Reset day selection and flexible when frequency type changes
@@ -373,10 +393,10 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
         type="submit"
         variant="primary"
         size="lg"
-        loading={createHabit.isPending}
+        loading={isEditMode ? updateHabit.isPending : createHabit.isPending}
         className="w-full mt-2"
       >
-        Create habit
+        {isEditMode ? "Save changes" : "Create habit"}
       </Button>
     </form>
   );

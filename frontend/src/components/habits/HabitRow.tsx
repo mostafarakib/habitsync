@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MessageSquare, Flame, CalendarOff } from "lucide-react";
 import { HabitLogControl } from "./HabitLogControl";
 import { useLogValueMutation } from "@/lib/hooks/useLogMutation";
@@ -58,14 +59,16 @@ export function HabitRow({
       {/* ── Left: Habit info ── */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p
+          <Link
+            href={`/habits/${habit._id}`}
             className={cn(
-              "text-sm font-medium truncate",
+              "text-sm font-medium truncate hover:underline underline-offset-2 cursor-pointer",
               isCompleted ? "text-neutral-100" : "text-neutral-300",
             )}
+            onClick={(e) => e.stopPropagation()}
           >
             {habit.title}
-          </p>
+          </Link>
 
           {habit.category && (
             <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider bg-neutral-800 text-neutral-400">
