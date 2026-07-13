@@ -1,11 +1,4 @@
-import {
-  addDays,
-  format,
-  isAfter,
-  isBefore,
-  parseISO,
-  subDays,
-} from "date-fns";
+import { addDays, format, isAfter, isBefore, subDays } from "date-fns";
 
 // Normalize a date to UTC midnight
 export function normalizeUtcDate(date: Date): Date {
@@ -21,7 +14,9 @@ export function toApiDate(date: Date): string {
 
 //Parses an API date string  -> Date
 export function fromApiDate(dateStr: string): Date {
-  return parseISO(dateStr);
+  // Parse as UTC midnight explicitly to avoid local timezone shift
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
 // "Today" check using UTC

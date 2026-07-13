@@ -7,15 +7,32 @@ import {
   isFutureDate,
   isEditable,
   getNextDay,
+  toApiDate,
+  fromApiDate,
 } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
+import { useRef } from "react";
 
 export function DateNavigator() {
-  const { selectedDate, goToPrevDay, goToNextDay, goToToday } = useDateStore();
+  const { selectedDate, goToPrevDay, goToNextDay, setDate } = useDateStore();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const nextDay = getNextDay(selectedDate);
   const canGoNext = !isFutureDate(nextDay);
   const readOnly = !isEditable(selectedDate);
+  const todayStr = toApiDate(new Date());
+
+  function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    if (!val) return;
+    const parsed = fromApiDate(val);
+    if (isFutureDate(parsed)) return;
+    setDate(parsed);
+  }
+
+  function openDatePicker() {
+    inputRef.current?.showPicker();
+  }
 
   return (
     <div className="flex items-center justify-between px-4 py-3">
@@ -28,22 +45,39 @@ export function DateNavigator() {
         <ChevronLeft size={18} />
       </button>
 
-      {/* Date display */}
-      <button
-        onClick={goToToday}
-        className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
-        title="Go to today"
-      >
-        <span className="text-base font-semibold tracking-tight text-neutral-100">
-          {toDisplayDate(selectedDate)}
-        </span>
+      {/* Date display — opens date picker on tap */}
+      <div className="relative flex flex-col items-center">
+        {/* Hidden native date input */}
+        <input
+          ref={inputRef}
+          type="date"
+          max={todayStr}
+          value={toApiDate(selectedDate)}
+          onChange={handleDateChange}
+          className="sr-only"
+          aria-label="Select date"
+        />
 
-        {readOnly && (
-          <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">
-            Read-only
+        {/* Visible date button */}
+        <button
+          onClick={openDatePicker}
+          className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg
+            hover:bg-neutral-800 transition-colors"
+        >
+          <span className="text-base font-semibold tracking-tight text-neutral-100">
+            {toDisplayDate(selectedDate)}
           </span>
-        )}
-      </button>
+
+          {readOnly && (
+            <span
+              className="text-[10px] font-medium uppercase tracking-wider
+              px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400"
+            >
+              Read-only
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* Next day */}
       <button
