@@ -7,9 +7,13 @@ const normalizeDate = (dateInput) => {
   return date;
 };
 
-const validateHabitLogWriteAllowed = (dateInput) => {
+// clientDate — the user's local date sent from frontend
+// falls back to server UTC if not provided
+const validateHabitLogWriteAllowed = (dateInput, clientDate) => {
   const date = normalizeDate(dateInput);
-  const today = normalizeDate(new Date());
+  const today = clientDate
+    ? normalizeDate(clientDate)
+    : normalizeDate(new Date());
 
   const editableStartDate = new Date(today);
   editableStartDate.setDate(editableStartDate.getDate() - 30); // Allow editing logs from the past 30 days
@@ -25,4 +29,5 @@ const validateHabitLogWriteAllowed = (dateInput) => {
 const validateDateFormat = (date) => {
   return !isNaN(new Date(date).getTime());
 };
+
 export { normalizeDate, validateHabitLogWriteAllowed, validateDateFormat };

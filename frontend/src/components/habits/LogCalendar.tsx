@@ -1,7 +1,7 @@
-import { normalizeUtcDate, toApiDate } from "@/lib/utils/date";
+import { toApiDate, todayUtc } from "@/lib/utils/date";
 import { isHabitCompleted, isScheduledOnDate } from "@/lib/utils/habit";
 import type { Habit, HabitLog } from "@/types";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils/cn";
 
 interface LogCalendarProps {
@@ -19,7 +19,7 @@ interface CalendarDay {
 }
 
 function buildDays(habit: Habit, logs: HabitLog[]): CalendarDay[] {
-  const today = normalizeUtcDate(new Date());
+  const today = todayUtc();
 
   // Build a map of dateStr → log for quick lookup
   const logMap = new Map<string, HabitLog>();
@@ -31,7 +31,7 @@ function buildDays(habit: Habit, logs: HabitLog[]): CalendarDay[] {
   const days: CalendarDay[] = [];
 
   for (let i = 29; i >= 0; i--) {
-    const date = normalizeUtcDate(subDays(today, i));
+    const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
     const dateStr = toApiDate(date);
     const log = logMap.get(dateStr) ?? null;
     const isScheduled = isScheduledOnDate(habit, date);

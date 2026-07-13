@@ -11,7 +11,14 @@ import {
 } from "../utils/index.js";
 
 // Create or update a habit log for a specific date
-const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
+const upsertHabitLogService = async (
+  userId,
+  habitId,
+  date,
+  value,
+  notes,
+  clientDate
+) => {
   if (!habitId) {
     throw new ApiError(400, "Habit ID is required");
   }
@@ -32,7 +39,7 @@ const upsertHabitLogService = async (userId, habitId, date, value, notes) => {
   validateHabitLogValue(habit, value);
 
   // validate if the log date is within allowed range (not in the future and not more than 30 days old)
-  validateHabitLogWriteAllowed(date);
+  validateHabitLogWriteAllowed(date, clientDate);
 
   if (habit.archived) {
     throw new ApiError(400, "Cannot log an archived habit");
@@ -83,7 +90,7 @@ const bulkUpsertHabitLogsService = async (userId, logs) => {
   return results;
 };
 
-const getHabitLogsByDateService = async (userId, date) => {
+const getHabitLogsByDateService = async (userId, date, clientDate) => {
   if (!date) {
     throw new ApiError(400, "Date is required");
   }
@@ -95,7 +102,9 @@ const getHabitLogsByDateService = async (userId, date) => {
   // normalize the date
   const normalizedDate = normalizeDate(date);
 
-  const today = normalizeDate(new Date());
+  const today = clientDate
+    ? normalizeDate(clientDate)
+    : normalizeDate(new Date());
 
   if (normalizedDate > today) {
     throw new ApiError(400, "Cannot retrieve logs for future dates");
@@ -162,7 +171,12 @@ const getHabitLogsByDateService = async (userId, date) => {
   return result;
 };
 
-const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
+const getHabitLogsByDateRangeService = async (
+  userId,
+  startDate,
+  endDate,
+  clientDate
+) => {
   if (!startDate || !endDate) {
     throw new ApiError(400, "Start date and end date are required");
   }
@@ -171,7 +185,9 @@ const getHabitLogsByDateRangeService = async (userId, startDate, endDate) => {
     throw new ApiError(400, "Invalid date format");
   }
 
-  const today = normalizeDate(new Date());
+  const today = clientDate
+    ? normalizeDate(clientDate)
+    : normalizeDate(new Date());
 
   const normalizedStartDate = normalizeDate(startDate);
   const normalizedEndDate = normalizeDate(endDate);
@@ -301,7 +317,8 @@ const getHabitLogsByHabitService = async (
   userId,
   habitId,
   startDate,
-  endDate
+  endDate,
+  clientDate
 ) => {
   if (!habitId) {
     throw new ApiError(400, "Habit ID is required");
@@ -316,12 +333,16 @@ const getHabitLogsByHabitService = async (
   }
 
   let normalizedStartDate, normalizedEndDate;
+
   if (startDate) {
     if (!validateDateFormat(startDate)) {
       throw new ApiError(400, "Invalid start date format");
     }
 
-    const today = normalizeDate(new Date());
+    const today = clientDate
+      ? normalizeDate(clientDate)
+      : normalizeDate(new Date());
+
     normalizedStartDate = normalizeDate(startDate);
 
     if (normalizedStartDate > today) {
@@ -385,7 +406,12 @@ const getHabitLogsByHabitService = async (
   return logs;
 };
 
-const updateHabitLogValueService = async (userId, habitLogId, value) => {
+const updateHabitLogValueService = async (
+  userId,
+  habitLogId,
+  value,
+  clientDate
+) => {
   if (value === undefined) {
     throw new ApiError(400, "Value is required");
   }
@@ -401,7 +427,7 @@ const updateHabitLogValueService = async (userId, habitLogId, value) => {
   }
 
   // validate if the log is editable
-  validateHabitLogWriteAllowed(habitLog.date);
+  validateHabitLogWriteAllowed(habitLog.date, clientDate);
 
   const habit = await Habit.findOne({ _id: habitLog.habit, user: userId });
 
@@ -421,7 +447,12 @@ const updateHabitLogValueService = async (userId, habitLogId, value) => {
   return habitLog;
 };
 
-const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
+const updateHabitLogNotesService = async (
+  userId,
+  habitLogId,
+  notes,
+  clientDate
+) => {
   if (!habitLogId) {
     throw new ApiError(400, "Habit Log ID is required");
   }
@@ -453,7 +484,7 @@ const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
   }
 
   // validate if the log is editable
-  validateHabitLogWriteAllowed(habitLog.date);
+  validateHabitLogWriteAllowed(habitLog.date, clientDate);
 
   habitLog.notes = notes;
 
@@ -462,7 +493,7 @@ const updateHabitLogNotesService = async (userId, habitLogId, notes) => {
   return habitLog;
 };
 
-const deleteHabitLogService = async (userId, habitLogId) => {
+const deleteHabitLogService = async (userId, habitLogId, clientDate) => {
   if (!habitLogId) {
     throw new ApiError(400, "Habit Log ID is required");
   }
@@ -478,7 +509,7 @@ const deleteHabitLogService = async (userId, habitLogId) => {
   }
 
   // validate if the log is editable
-  validateHabitLogWriteAllowed(habitLog.date);
+  validateHabitLogWriteAllowed(habitLog.date, clientDate);
 
   await habitLog.deleteOne();
 
@@ -514,7 +545,7 @@ const getHabitLogByIdService = async (userId, habitLogId) => {
   return habitLog;
 };
 
-const getHabitStreakService = async (userId, habitId) => {
+const getHabitStreakService = async (userId, habitId, clientDate) => {
   if (!habitId) {
     throw new ApiError(400, "Habit ID is required");
   }
@@ -571,7 +602,10 @@ const getHabitStreakService = async (userId, habitId) => {
     return false;
   };
 
-  const today = normalizeDate(new Date());
+  const today = clientDate
+    ? normalizeDate(clientDate)
+    : normalizeDate(new Date());
+
   const mostRecentLogDate = normalizeDate(completedLogs[0].date);
 
   // always check for missed scheduled days

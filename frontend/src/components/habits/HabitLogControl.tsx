@@ -85,65 +85,41 @@ function MeasurableControl({
   const [localValue, setLocalValue] = useState(
     currentValue > 0 ? String(currentValue) : "",
   );
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state when server response comes back
-  // Keep local input in sync with server updates
   useEffect(() => {
-    const serverValue = currentValue > 0 ? String(currentValue) : "";
+    const isFocused = document.activeElement === inputRef.current;
+    if (isFocused) return; // don't overwrite while user is typing
 
-    if (localValue !== serverValue) {
-      setLocalValue(serverValue);
-    }
-  }, [currentValue, localValue]);
+    setLocalValue(currentValue > 0 ? String(currentValue) : "");
+  }, [currentValue]);
 
-  // Cleanup pending debounce timer
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
+  function handleFocus() {
+    const parsed = Number(localValue);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value;
-
-    setLocalValue(raw);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    // Empty input = 0
-    if (raw === "") {
-      debounceRef.current = setTimeout(() => {
-        onValueChange(0);
-      }, 600);
-
+    // Empty or invalid → reset to current server value
+    if (localValue === "" || isNaN(parsed) || parsed < 0) {
+      setLocalValue(currentValue > 0 ? String(currentValue) : "");
       return;
     }
 
-    const parsed = Number(raw);
+    // Same value → no mutation needed
+    if (parsed === currentValue) return;
 
-    if (Number.isNaN(parsed) || parsed < 0) {
-      return;
-    }
-
-    debounceRef.current = setTimeout(() => {
-      onValueChange(parsed);
-    }, 600);
+    onValueChange(parsed);
   }
 
   return (
     <div className="flex items-center gap-2">
       <input
+        ref={inputRef}
         type="number"
         inputMode="decimal"
         step="any"
         min={0}
         value={localValue}
-        onChange={handleChange}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={handleFocus}
         disabled={isReadOnly || isPending}
         placeholder="0"
         className={cn(

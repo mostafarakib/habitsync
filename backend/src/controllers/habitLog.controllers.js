@@ -15,13 +15,15 @@ import { ApiError, ApiResponse, asyncHandler } from "../utils/index.js";
 const upsertHabitLog = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { habitId, date, value, notes } = req.body;
+  const clientDate = req.clientDate;
 
   const habitLog = await upsertHabitLogService(
     userId,
     habitId,
     date,
     value,
-    notes
+    notes,
+    clientDate
   );
 
   return res
@@ -44,10 +46,12 @@ const bulkUpsertHabitLogs = asyncHandler(async (req, res) => {
 const getHabitLogsByDate = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { date } = req.params;
+  const clientDate = req.clientDate;
+
   if (!date) {
     throw new ApiError(400, "Date is required");
   }
-  const data = await getHabitLogsByDateService(userId, date);
+  const data = await getHabitLogsByDateService(userId, date, clientDate);
 
   return res
     .status(200)
@@ -57,8 +61,14 @@ const getHabitLogsByDate = asyncHandler(async (req, res) => {
 const getHabitLogsByDateRange = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { startDate, endDate } = req.query;
+  const clientDate = req.clientDate;
 
-  const data = await getHabitLogsByDateRangeService(userId, startDate, endDate);
+  const data = await getHabitLogsByDateRangeService(
+    userId,
+    startDate,
+    endDate,
+    clientDate
+  );
 
   return res
     .status(200)
@@ -67,16 +77,16 @@ const getHabitLogsByDateRange = asyncHandler(async (req, res) => {
 
 const getHabitLogsByHabit = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-
   const { habitId } = req.params;
-
   const { startDate, endDate } = req.query;
+  const clientDate = req.clientDate;
 
   const data = await getHabitLogsByHabitService(
     userId,
     habitId,
     startDate,
-    endDate
+    endDate,
+    clientDate
   );
 
   return res
@@ -88,8 +98,14 @@ const updateHabitLogValue = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { id } = req.params;
   const value = req.body?.value;
+  const clientDate = req.clientDate;
 
-  const habitLog = await updateHabitLogValueService(userId, id, value);
+  const habitLog = await updateHabitLogValueService(
+    userId,
+    id,
+    value,
+    clientDate
+  );
 
   return res
     .status(200)
@@ -102,8 +118,14 @@ const updateHabitLogNotes = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { id } = req.params;
   const notes = req.body?.notes;
+  const clientDate = req.clientDate;
 
-  const habitLog = await updateHabitLogNotesService(userId, id, notes);
+  const habitLog = await updateHabitLogNotesService(
+    userId,
+    id,
+    notes,
+    clientDate
+  );
 
   return res
     .status(200)
@@ -115,8 +137,9 @@ const updateHabitLogNotes = asyncHandler(async (req, res) => {
 const deleteHabitLog = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { id } = req.params;
+  const clientDate = req.clientDate;
 
-  const result = await deleteHabitLogService(userId, id);
+  const result = await deleteHabitLogService(userId, id, clientDate);
 
   return res
     .status(200)
@@ -137,8 +160,9 @@ const getHabitLogById = asyncHandler(async (req, res) => {
 const getHabitStreak = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { habitId } = req.params;
+  const clientDate = req.clientDate;
 
-  const streak = await getHabitStreakService(userId, habitId);
+  const streak = await getHabitStreakService(userId, habitId, clientDate);
 
   return res
     .status(200)

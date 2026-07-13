@@ -4,6 +4,15 @@ import { ApiError } from "../errors/ApiError";
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
+// Get local date string "YYYY-MM-DD" based on user's local clock
+function getClientDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -14,6 +23,7 @@ export async function apiFetch<T>(
       ...(options?.body instanceof FormData
         ? {}
         : { "Content-Type": "application/json" }),
+      "x-client-date": getClientDate(), // ← user's local date
       ...(options?.headers ?? {}),
     },
     ...options,

@@ -4,6 +4,7 @@ import {
   isFutureDate,
   normalizeUtcDate,
   toApiDate,
+  todayUtc,
 } from "@/lib/utils/date";
 import { create } from "zustand";
 
@@ -18,7 +19,7 @@ interface DateStore {
 }
 
 export const useDateStore = create<DateStore>((set, get) => {
-  const today = normalizeUtcDate(new Date());
+  const today = todayUtc();
 
   return {
     selectedDate: today,
@@ -56,7 +57,7 @@ export const useDateStore = create<DateStore>((set, get) => {
       });
     },
     goToToday: () => {
-      const today = normalizeUtcDate(new Date());
+      const today = todayUtc();
       set({
         selectedDate: today,
         selectedDateStr: toApiDate(today),

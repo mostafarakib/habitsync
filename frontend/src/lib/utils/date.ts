@@ -1,5 +1,18 @@
 import { addDays, format, isAfter, isBefore, subDays } from "date-fns";
 
+// Returns today's date as UTC midnight based on LOCAL calendar date
+// e.g. if local date is July 14, returns 2026-07-14T00:00:00.000Z
+export function todayUtc(): Date {
+  const now = new Date();
+  return new Date(
+    Date.UTC(
+      now.getFullYear(), // local year
+      now.getMonth(), // local month
+      now.getDate(), // local day
+    ),
+  );
+}
+
 // Normalize a date to UTC midnight
 export function normalizeUtcDate(date: Date): Date {
   return new Date(
@@ -14,14 +27,15 @@ export function toApiDate(date: Date): string {
 
 //Parses an API date string  -> Date
 export function fromApiDate(dateStr: string): Date {
-  // Parse as UTC midnight explicitly to avoid local timezone shift
-  const [year, month, day] = dateStr.split("-").map(Number);
+  // Handle both "YYYY-MM-DD" and full ISO "YYYY-MM-DDTHH:mm:ss.sssZ"
+  const datePart = dateStr.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day));
 }
 
 // "Today" check using UTC
 export function isTodayUtc(date: Date): boolean {
-  const today = normalizeUtcDate(new Date());
+  const today = todayUtc();
   const target = normalizeUtcDate(date);
 
   return today.getTime() === target.getTime();
@@ -42,7 +56,7 @@ export function toShortDate(date: Date): string {
 // ------- Validation --------
 // Rules: not in the future, not older than 30 days
 export function isEditable(date: Date): boolean {
-  const today = normalizeUtcDate(new Date());
+  const today = todayUtc();
   const target = normalizeUtcDate(date);
 
   if (isAfter(target, today)) {
@@ -55,7 +69,7 @@ export function isEditable(date: Date): boolean {
 }
 
 export function isFutureDate(date: Date): boolean {
-  const today = normalizeUtcDate(new Date());
+  const today = todayUtc();
   const target = normalizeUtcDate(date);
 
   return isAfter(target, today);
