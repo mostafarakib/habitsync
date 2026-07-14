@@ -5,14 +5,16 @@ import { useForm } from "react-hook-form";
 import type { LoginPayload } from "@/types";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
-import { Flame } from "lucide-react";
+import { Flame, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const { mutate: login, isPending } = useLogin();
   const { data: user, isLoading } = useCurrentUser();
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const {
@@ -25,6 +27,14 @@ export default function LoginPage() {
       password: "",
     },
   });
+
+  function handleDemoLogin() {
+    setIsDemoLoading(true);
+    login(
+      { email: "demo@habitsync.app", password: "demo123456" },
+      { onSettled: () => setIsDemoLoading(false) },
+    );
+  }
 
   function onSubmit(data: LoginPayload) {
     const payload = { email: data.email.trim(), password: data.password };
@@ -80,20 +90,44 @@ export default function LoginPage() {
               })}
             />
 
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              error={errors.password?.message}
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-              })}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-neutral-300">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className="w-full h-10 px-3 pr-10 rounded-lg text-sm transition-all outline-none
+        bg-neutral-800 border border-neutral-700
+        text-neutral-100 placeholder:text-neutral-500
+        focus:border-violet-500 focus:ring-1 focus:ring-violet-500
+        disabled:opacity-50 disabled:cursor-not-allowed"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters",
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2
+        text-neutral-500 hover:text-neutral-300 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-red-400">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
 
             <Button
               type="submit"
@@ -103,6 +137,25 @@ export default function LoginPage() {
               className="w-full mt-2"
             >
               Sign in
+            </Button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 mt-4">
+              <div className="flex-1 h-px bg-neutral-800" />
+              <span className="text-xs text-neutral-600">or</span>
+              <div className="flex-1 h-px bg-neutral-800" />
+            </div>
+
+            {/* Demo button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              loading={isDemoLoading}
+              onClick={handleDemoLogin}
+              className="w-full"
+            >
+              Try Demo Account
             </Button>
           </form>
 

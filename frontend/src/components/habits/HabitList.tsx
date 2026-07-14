@@ -1,6 +1,5 @@
 "use client";
 
-import { HabitRow } from "./HabitRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Spinner } from "@/components/ui/Spinner";
@@ -8,7 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { isScheduledOnDate } from "@/lib/utils/habit";
 import { isEditable } from "@/lib/utils/date";
 import { CalendarDays } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
 import type { DayEntry } from "@/types";
 import { useMemo } from "react";
 import { HabitListSection } from "@/components/habits/HabitListSection";
@@ -110,15 +108,6 @@ export function HabitList({
       />
     );
   }
-
-  // ── Sort: scheduled first, unscheduled below ──────────────────────────────
-
-  const scheduled = entries.filter((e) =>
-    isScheduledOnDate(e.habit, selectedDate),
-  );
-  const unscheduled = entries.filter(
-    (e) => !isScheduledOnDate(e.habit, selectedDate),
-  );
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-28">
