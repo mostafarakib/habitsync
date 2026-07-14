@@ -1,17 +1,9 @@
 import { ApiResponse } from "@/types";
-import { ApiError } from "../errors/ApiError";
+import { ApiError } from "@/lib/errors/ApiError";
+import { toLocalDateStr } from "@/lib/utils/date";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-
-// Get local date string "YYYY-MM-DD" based on user's local clock
-function getClientDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 export async function apiFetch<T>(
   path: string,
@@ -23,7 +15,7 @@ export async function apiFetch<T>(
       ...(options?.body instanceof FormData
         ? {}
         : { "Content-Type": "application/json" }),
-      "x-client-date": getClientDate(), // ← user's local date
+      "x-client-date": toLocalDateStr(), // ← user's local date
       ...(options?.headers ?? {}),
     },
     ...options,

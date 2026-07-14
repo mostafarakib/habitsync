@@ -95,10 +95,17 @@ function MeasurableControl({
   }, [currentValue]);
 
   function handleFocus() {
+    if (localValue === "") {
+      if (currentValue !== 0) {
+        onValueChange(0); // send 0 to server
+      }
+      return;
+    }
+
     const parsed = Number(localValue);
 
-    // Empty or invalid → reset to current server value
-    if (localValue === "" || isNaN(parsed) || parsed < 0) {
+    //  invalid → reset to current server value
+    if (isNaN(parsed) || parsed < 0) {
       setLocalValue(currentValue > 0 ? String(currentValue) : "");
       return;
     }

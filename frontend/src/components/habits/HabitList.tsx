@@ -10,6 +10,8 @@ import { isEditable } from "@/lib/utils/date";
 import { CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { DayEntry } from "@/types";
+import { useMemo } from "react";
+import { HabitListSection } from "@/components/habits/HabitListSection";
 
 interface HabitListProps {
   entries: DayEntry[];
@@ -33,6 +35,39 @@ export function HabitList({
   onCreateHabit,
 }: HabitListProps) {
   const readOnly = !isEditable(selectedDate);
+
+  // ── Categorize entries into buckets ───────────────────────────────────────
+  const { scheduledToday, weeklyFlexible, monthly, notScheduled } =
+    useMemo(() => {
+      const scheduledToday: DayEntry[] = [];
+      const weeklyFlexible: DayEntry[] = [];
+      const monthly: DayEntry[] = [];
+      const notScheduled: DayEntry[] = [];
+
+      entries.forEach((entry) => {
+        const { type, flexible } = entry.habit.frequency;
+
+        if (type === "monthly") {
+          monthly.push(entry);
+          return;
+        }
+
+        if (type === "weekly" && flexible) {
+          weeklyFlexible.push(entry);
+          return;
+        }
+
+        // daily or scheduled weekly
+        if (isScheduledOnDate(entry.habit, selectedDate)) {
+          scheduledToday.push(entry);
+        } else {
+          // scheduled weekly but not today
+          notScheduled.push(entry);
+        }
+      });
+
+      return { scheduledToday, weeklyFlexible, monthly, notScheduled };
+    }, [entries, selectedDate]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
 
@@ -86,42 +121,55 @@ export function HabitList({
   );
 
   return (
-    <div className="flex flex-col gap-2 px-4 pb-28">
-      {/* Scheduled habits */}
-      {scheduled.map((entry) => (
-        <HabitRow
-          key={entry.habit._id}
-          entry={entry}
-          date={dateStr}
-          selectedDate={selectedDate}
-          isReadOnly={readOnly}
-          onNotesClick={onNotesClick}
-        />
-      ))}
+    <div className="flex flex-col gap-4 px-4 pb-28">
+      {/* Scheduled Today — daily + scheduled weekly on correct day */}
+      <HabitListSection
+        title="Scheduled Today"
+        entries={scheduledToday}
+        date={dateStr}
+        selectedDate={selectedDate}
+        isReadOnly={readOnly}
+        defaultOpen={true}
+        resetKey={dateStr}
+        onNotesClick={onNotesClick}
+      />
 
-      {/* Unscheduled section */}
-      {unscheduled.length > 0 && (
-        <>
-          <div className={cn("flex items-center gap-3 mt-4 mb-1")}>
-            <div className="flex-1 h-px bg-neutral-800" />
-            <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-600">
-              Not scheduled
-            </span>
-            <div className="flex-1 h-px bg-neutral-800" />
-          </div>
+      {/* Weekly — flexible weekly habits */}
+      <HabitListSection
+        title="Weekly"
+        entries={weeklyFlexible}
+        date={dateStr}
+        selectedDate={selectedDate}
+        isReadOnly={readOnly}
+        defaultOpen={true}
+        resetKey={dateStr}
+        onNotesClick={onNotesClick}
+      />
 
-          {unscheduled.map((entry) => (
-            <HabitRow
-              key={entry.habit._id}
-              entry={entry}
-              date={dateStr}
-              selectedDate={selectedDate}
-              isReadOnly={true}
-              onNotesClick={onNotesClick}
-            />
-          ))}
-        </>
-      )}
+      {/* Monthly — monthly habits */}
+      <HabitListSection
+        title="Monthly"
+        entries={monthly}
+        date={dateStr}
+        selectedDate={selectedDate}
+        isReadOnly={readOnly}
+        defaultOpen={false}
+        resetKey={dateStr}
+        onNotesClick={onNotesClick}
+      />
+
+      {/* Not Scheduled Today — scheduled weekly not due today */}
+      <HabitListSection
+        title="Not Scheduled Today"
+        entries={notScheduled}
+        date={dateStr}
+        selectedDate={selectedDate}
+        isReadOnly={readOnly}
+        forceReadOnly={true}
+        defaultOpen={false}
+        resetKey={dateStr}
+        onNotesClick={onNotesClick}
+      />
     </div>
   );
 }

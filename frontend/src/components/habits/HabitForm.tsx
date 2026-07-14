@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Toggle } from "@/components/ui/Toggle";
-import { toApiDate } from "@/lib/utils/date";
+import { toLocalDateStr } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
 import type { CreateHabitPayload, Habit } from "@/types";
 import { useCreateHabit, useUpdateHabit } from "@/lib/hooks/useHabits";
@@ -136,7 +136,7 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
       title: data.title.trim(),
       description: data.description.trim() || undefined,
       category: data.category || undefined,
-      startDate: habit?.startDate ?? toApiDate(new Date()),
+      startDate: habit?.startDate ?? toLocalDateStr(),
       frequency: {
         type: data.frequencyType,
         daysOfWeek:

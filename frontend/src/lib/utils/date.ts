@@ -13,6 +13,15 @@ export function todayUtc(): Date {
   );
 }
 
+// Returns today's date as a string in YYYY-MM-DD format based on LOCAL calendar date
+export function toLocalDateStr(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // Normalize a date to UTC midnight
 export function normalizeUtcDate(date: Date): Date {
   return new Date(
