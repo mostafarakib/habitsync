@@ -5,10 +5,14 @@ import {
 } from "../services/auth.services.js";
 import { ApiResponse, asyncHandler } from "../utils/index.js";
 
-const cookiesOptions = {
+const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
+
+const cookieOptionsWithExpiry = {
+  ...cookieOptions,
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -26,8 +30,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .cookie("accessToken", accessToken, cookiesOptions)
-    .cookie("refreshToken", refreshToken, cookiesOptions)
+    .cookie("accessToken", accessToken, cookieOptionsWithExpiry)
+    .cookie("refreshToken", refreshToken, cookieOptionsWithExpiry)
     .json(new ApiResponse(201, "User registered successfully", user));
 });
 
@@ -51,8 +55,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new ApiResponse(200, "User logged out successfully"));
 });
 
