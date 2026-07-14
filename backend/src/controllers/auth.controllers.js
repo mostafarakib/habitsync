@@ -7,9 +7,11 @@ import { ApiResponse, asyncHandler } from "../utils/index.js";
 
 const cookiesOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: "strict",
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
+
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, password } = req.body;
 
