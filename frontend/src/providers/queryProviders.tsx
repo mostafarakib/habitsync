@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { ApiError } from "@/lib/errors/ApiError";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -9,12 +10,42 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            retry: 1,
+            retry: (failureCount, error) => {
+              if (error instanceof ApiError && error.statusCode === 401) {
+                return false;
+              }
+              return failureCount < 1;
+            },
             refetchOnWindowFocus: false,
           },
         },
       }),
   );
+
+  // Global 401 handler — only redirect if not already on an auth page
+  queryClient.getQueryCache().config.onError = (error) => {
+    if (error instanceof ApiError && error.statusCode === 401) {
+      const isAuthPage =
+        window.location.pathname === "/login" ||
+        window.location.pathname === "/register";
+
+      if (!isAuthPage) {
+        window.location.href = "/login";
+      }
+    }
+  };
+
+  queryClient.getMutationCache().config.onError = (error) => {
+    if (error instanceof ApiError && error.statusCode === 401) {
+      const isAuthPage =
+        window.location.pathname === "/login" ||
+        window.location.pathname === "/register";
+
+      if (!isAuthPage) {
+        window.location.href = "/login";
+      }
+    }
+  };
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
