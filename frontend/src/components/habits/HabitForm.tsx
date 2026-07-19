@@ -58,6 +58,8 @@ interface FormValues {
   targetType: "atLeast" | "atMost" | "lessThan" | "exactly";
   targetValue: string;
   targetUnit: string;
+  startDate: string;
+  endDate: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -87,6 +89,7 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
     handleSubmit,
     control,
     reset,
+    getValues,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -98,6 +101,8 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
       targetType: habit?.targetType ?? "atLeast",
       targetValue: habit?.targetValue != null ? String(habit.targetValue) : "",
       targetUnit: habit?.targetUnit ?? "",
+      startDate: habit?.startDate ?? toLocalDateStr(),
+      endDate: habit?.endDate ?? "",
     },
   });
 
@@ -136,7 +141,8 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
       title: data.title.trim(),
       description: data.description.trim() || undefined,
       category: data.category || undefined,
-      startDate: habit?.startDate ?? toLocalDateStr(),
+      startDate: isEditMode ? habit!.startDate : data.startDate,
+      endDate: data.endDate || null,
       frequency: {
         type: data.frequencyType,
         daysOfWeek:
@@ -308,6 +314,83 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
           {daysError && <p className="text-xs text-red-400">{daysError}</p>}
         </div>
       )}
+
+      {/* Start date — editable only in create mode */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-neutral-300">
+          Start date
+        </label>
+        {isEditMode ? (
+          // Read-only in edit mode
+          <div className="h-10 px-3 flex items-center rounded-lg bg-neutral-800/50 border border-neutral-700/50">
+            <span className="text-sm text-neutral-500">
+              {habit?.startDate
+                ? new Date(habit.startDate).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  })
+                : "—"}
+            </span>
+            <span className="ml-auto text-[10px] text-neutral-600 uppercase tracking-wider">
+              locked
+            </span>
+          </div>
+        ) : (
+          <input
+            type="date"
+            className={cn(
+              "w-full h-10 px-3 rounded-lg text-sm transition-all outline-none",
+              "bg-neutral-800 border border-neutral-700",
+              "text-neutral-100",
+              "focus:border-violet-500 focus:ring-1 focus:ring-violet-500",
+              "scheme-dark",
+              errors.startDate && "border-red-500",
+            )}
+            {...register("startDate", {
+              required: "Start date is required",
+            })}
+          />
+        )}
+        {errors.startDate && (
+          <p className="text-xs text-red-400">{errors.startDate.message}</p>
+        )}
+      </div>
+
+      {/* End date — optional, editable in both modes */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-neutral-300">
+          End date
+          <span className="ml-1.5 text-neutral-600 font-normal">
+            (optional)
+          </span>
+        </label>
+        <input
+          type="date"
+          className={cn(
+            "w-full h-10 px-3 rounded-lg text-sm transition-all outline-none",
+            "bg-neutral-800 border border-neutral-700",
+            "text-neutral-100",
+            "focus:border-violet-500 focus:ring-1 focus:ring-violet-500",
+            "scheme-dark",
+            errors.endDate && "border-red-500",
+          )}
+          {...register("endDate", {
+            validate: (endDate) => {
+              if (!endDate) return true;
+              const startDate = getValues("startDate");
+              if (startDate && endDate <= startDate) {
+                return "End date must be after start date";
+              }
+              return true;
+            },
+          })}
+        />
+        {errors.endDate && (
+          <p className="text-xs text-red-400">{errors.endDate.message}</p>
+        )}
+      </div>
 
       {/* Evaluation type toggle */}
       <div className="flex items-center justify-between py-1">
