@@ -97,3 +97,24 @@ export function useArchiveHabit() {
     },
   });
 }
+
+export function useDeleteHabit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => habitsApi.delete(id),
+
+    onSuccess: (_, id) => {
+      // remove habit from cache immediately
+      queryClient.removeQueries({ queryKey: queryKeys.habits.detail(id) });
+      // invalidate habits lists and logs
+      queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
+      queryClient.invalidateQueries({ queryKey: ["logs"] });
+      toast.success("Habit deleted successfully");
+    },
+
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+}

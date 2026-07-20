@@ -1,4 +1,5 @@
 import Habit from "../models/habit.model.js";
+import HabitLog from "../models/habitLog.model.js";
 import { ApiError } from "../utils/index.js";
 
 const createHabitService = async (userId, habitData) => {
@@ -116,6 +117,25 @@ const unarchiveHabitService = async (userId, habitId) => {
   return habit;
 };
 
+const deleteHabitService = async (userId, habitId) => {
+  const habit = await Habit.findOne({
+    _id: habitId,
+    user: userId,
+  });
+
+  if (!habit) {
+    throw new ApiError(404, "Habit not found");
+  }
+
+  // Delete all logs associated with this habit
+  await HabitLog.deleteMany({ habit: habitId, user: userId });
+
+  // Delete the habit itself
+  await habit.deleteOne();
+
+  return { deleted: true, habitId };
+};
+
 export {
   createHabitService,
   getHabitsByUserService,
@@ -123,4 +143,5 @@ export {
   updateHabitService,
   archiveHabitService,
   unarchiveHabitService,
+  deleteHabitService,
 };

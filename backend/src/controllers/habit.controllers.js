@@ -5,6 +5,7 @@ import {
   getHabitsByUserService,
   unarchiveHabitService,
   updateHabitService,
+  deleteHabitService,
 } from "../services/habit.services.js";
 import { ApiResponse, asyncHandler } from "../utils/index.js";
 
@@ -116,6 +117,17 @@ const unarchiveHabit = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Habit unarchived successfully", habit));
 });
 
+const deleteHabit = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { id } = req.params;
+
+  const result = await deleteHabitService(userId, id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit deleted successfully", result));
+});
+
 export {
   createHabit,
   getHabitsByUser,
@@ -123,4 +135,5 @@ export {
   updateHabit,
   archiveHabit,
   unarchiveHabit,
+  deleteHabit,
 };

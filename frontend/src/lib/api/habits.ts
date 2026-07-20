@@ -27,4 +27,8 @@ export const habitsApi = {
     apiFetch<Habit>(`/habits/${id}/unarchive`, {
       method: "PATCH",
     }),
+  delete: (id: string) =>
+    apiFetch<Habit>(`/habits/${id}`, {
+      method: "DELETE",
+    }),
 };

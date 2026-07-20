@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,13 +12,17 @@ import {
   Calendar,
   Tag,
   Target,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LogCalendar } from "@/components/habits/LogCalendar";
-import { useHabit } from "@/lib/hooks/useHabits";
-import { useArchiveHabit } from "@/lib/hooks/useHabits";
+import {
+  useHabit,
+  useDeleteHabit,
+  useArchiveHabit,
+} from "@/lib/hooks/useHabits";
 import { useStreak } from "@/lib/hooks/useStreak";
 import { useHabitLogs } from "@/lib/hooks/useHabitLogs";
 import { frequencyLabel, isStreakRelevant } from "@/lib/utils/habit";
@@ -32,11 +36,13 @@ interface HabitDetailPageProps {
 export default function HabitDetailPage({ params }: HabitDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const { data: habit, isLoading, error, refetch } = useHabit(id);
   const { data: streak } = useStreak(id);
   const { data: logs = [] } = useHabitLogs(id);
   const archiveHabit = useArchiveHabit();
+  const deleteHabit = useDeleteHabit();
 
   function handleBack() {
     if (window.history.length > 1) {
@@ -48,10 +54,24 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
 
   function handleArchiveToggle() {
     if (!habit) return;
+
     archiveHabit.mutate(
       { id: habit._id, archive: !habit.archived },
       { onSuccess: () => router.push("/dashboard") },
     );
+  }
+
+  function handleDelete() {
+    if (!habit) return;
+
+    if (!confirmDelete) {
+      setConfirmDelete(true); // first click — ask for confirmation
+      return;
+    }
+
+    deleteHabit.mutate(habit._id, {
+      onSuccess: () => router.push("/dashboard"),
+    });
   }
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -107,16 +127,6 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
               HabitSync
             </span>
           </Link>
-
-          {/* <h1 className="text-base font-semibold text-neutral-100 truncate max-w-50">
-            {habit.title}
-          </h1> */}
-
-          {/* {habit.archived && (
-            <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-500">
-              Archived
-            </span>
-          )} */}
         </div>
 
         {/* Edit button */}
@@ -232,6 +242,32 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
               </span>
             )}
           </Button>
+        </section>
+        <section>
+          {/* Delete */}
+          <Button
+            variant="danger"
+            size="md"
+            onClick={handleDelete}
+            loading={deleteHabit.isPending}
+            className="w-full"
+          >
+            <span className="flex items-center gap-1">
+              <Trash2 size={15} />
+              {confirmDelete ? "Tap again to confirm delete" : "Delete habit"}
+            </span>
+          </Button>
+
+          {/* Cancel confirm */}
+          {confirmDelete && (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors text-center"
+            >
+              Cancel
+            </button>
+          )}
         </section>
       </main>
     </div>

@@ -7,6 +7,7 @@ import {
   getHabitsByUser,
   unarchiveHabit,
   updateHabit,
+  deleteHabit,
 } from "../controllers/habit.controllers.js";
 
 const router = Router();
@@ -26,5 +27,6 @@ router.get("/:id", getHabitById);
 router.patch("/:id", updateHabit);
 router.patch("/:id/archive", archiveHabit);
 router.patch("/:id/unarchive", unarchiveHabit);
+router.delete("/:id", deleteHabit);
 
 export default router;
