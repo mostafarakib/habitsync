@@ -33,7 +33,7 @@ export interface Habit {
   targetValue: number | null;
   targetUnit?: string | null; // e.g., "times", "hours", "pages", etc.
 
-  priority: Priority;
+  priority?: Priority;
   reminder: Reminder;
 
   color: string | null; // Hex color code for UI representation

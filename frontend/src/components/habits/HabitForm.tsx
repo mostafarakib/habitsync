@@ -47,6 +47,12 @@ const TARGET_TYPE_OPTIONS = [
   { value: "exactly", label: "Exactly" },
 ];
 
+const PRIORITY_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "High" },
+];
+
 // ── Form values ───────────────────────────────────────────────────────────────
 
 interface FormValues {
@@ -60,6 +66,7 @@ interface FormValues {
   targetUnit: string;
   startDate: string;
   endDate: string;
+  priority: "low" | "normal" | "high";
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -103,6 +110,7 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
       targetUnit: habit?.targetUnit ?? "",
       startDate: habit?.startDate ?? toLocalDateStr(),
       endDate: habit?.endDate ?? "",
+      priority: habit?.priority ?? "normal",
     },
   });
 
@@ -143,6 +151,7 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
       category: data.category || undefined,
       startDate: isEditMode ? habit!.startDate : data.startDate,
       endDate: data.endDate || null,
+      priority: data.priority,
       frequency: {
         type: data.frequencyType,
         daysOfWeek:
@@ -241,6 +250,20 @@ export function HabitForm({ onSuccess, habit }: HabitFormProps) {
             value={field.value}
             onValueChange={field.onChange}
             options={CATEGORY_OPTIONS}
+          />
+        )}
+      />
+
+      {/* Priority */}
+      <Controller
+        name="priority"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label="Priority"
+            value={field.value}
+            onValueChange={field.onChange}
+            options={PRIORITY_OPTIONS}
           />
         )}
       />

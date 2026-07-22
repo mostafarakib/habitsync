@@ -1,4 +1,4 @@
-import type { Habit, HabitLog } from "@/types";
+import type { Habit, HabitLog, DayEntry } from "@/types";
 import { parseISO } from "date-fns";
 import { getUtcDate, getUtcDay } from "./date";
 
@@ -106,4 +106,50 @@ export function isHabitCompleted(habit: Habit, log: HabitLog | null): boolean {
     default:
       return false;
   }
+}
+
+export type SortOption = "priority" | "startDate" | "name" | "status";
+
+const PRIORITY_ORDER: Record<string, number> = {
+  high: 0,
+  normal: 1,
+  low: 2,
+};
+
+export function sortEntries(
+  entries: DayEntry[],
+  sortBy: SortOption,
+  habit?: Habit,
+): DayEntry[] {
+  return [...entries].sort((a, b) => {
+    switch (sortBy) {
+      case "priority": {
+        const pa = PRIORITY_ORDER[a.habit.priority ?? "normal"];
+        const pb = PRIORITY_ORDER[b.habit.priority ?? "normal"];
+        return pa - pb;
+      }
+
+      case "startDate": {
+        const da = new Date(a.habit.startDate).getTime();
+        const db = new Date(b.habit.startDate).getTime();
+        return db - da; // newest first
+      }
+
+      case "name": {
+        return a.habit.title
+          .toLowerCase()
+          .localeCompare(b.habit.title.toLowerCase());
+      }
+
+      case "status": {
+        // not completed → completed (undone habits surface first)
+        const ac = a.log?.isCompleted ? 1 : 0;
+        const bc = b.log?.isCompleted ? 1 : 0;
+        return ac - bc;
+      }
+
+      default:
+        return 0;
+    }
+  });
 }

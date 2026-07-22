@@ -4,12 +4,24 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
-import { isScheduledOnDate } from "@/lib/utils/habit";
+import { isScheduledOnDate, sortEntries, SortOption } from "@/lib/utils/habit";
 import { isEditable } from "@/lib/utils/date";
-import { CalendarDays } from "lucide-react";
+import { ArrowUpDown, CalendarDays } from "lucide-react";
 import type { DayEntry } from "@/types";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { HabitListSection } from "@/components/habits/HabitListSection";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from "@/components/ui/DropdownMenu";
+
+const SORT_LABELS: Record<SortOption, string> = {
+  priority: "Priority",
+  startDate: "Start date",
+  name: "Name",
+  status: "Status",
+};
 
 interface HabitListProps {
   entries: DayEntry[];
@@ -33,6 +45,9 @@ export function HabitList({
   onCreateHabit,
 }: HabitListProps) {
   const readOnly = !isEditable(selectedDate);
+
+  // Sort preference — persists across date changes, resets on refresh
+  const [sortBy, setSortBy] = useState<SortOption>("priority");
 
   // ── Categorize entries into buckets ───────────────────────────────────────
   const { scheduledToday, weeklyFlexible, monthly, notScheduled } =
@@ -64,8 +79,14 @@ export function HabitList({
         }
       });
 
-      return { scheduledToday, weeklyFlexible, monthly, notScheduled };
-    }, [entries, selectedDate]);
+      // Sort each bucket independently
+      return {
+        scheduledToday: sortEntries(scheduledToday, sortBy),
+        weeklyFlexible: sortEntries(weeklyFlexible, sortBy),
+        monthly: sortEntries(monthly, sortBy),
+        notScheduled: sortEntries(notScheduled, sortBy),
+      };
+    }, [entries, selectedDate, sortBy]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
 
@@ -111,6 +132,35 @@ export function HabitList({
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-28">
+      {/* ── Sort control ── */}
+      <div className="flex items-center justify-end">
+        <DropdownMenu
+          trigger={
+            <button
+              className="flex items-center gap-1.5 text-xs text-neutral-500
+              hover:text-neutral-300 transition-colors py-1 px-2 rounded-lg
+              hover:bg-neutral-800"
+            >
+              <ArrowUpDown size={12} />
+              Sort: {SORT_LABELS[sortBy]}
+            </button>
+          }
+          align="end"
+        >
+          <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+          {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
+            <DropdownMenuItem key={option} onClick={() => setSortBy(option)}>
+              <span className={sortBy === option ? "text-violet-400" : ""}>
+                {SORT_LABELS[option]}
+              </span>
+              {sortBy === option && (
+                <span className="ml-auto text-violet-400 text-xs">✓</span>
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenu>
+      </div>
+
       {/* Scheduled Today — daily + scheduled weekly on correct day */}
       <HabitListSection
         title="Scheduled Today"

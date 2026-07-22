@@ -75,6 +75,9 @@ export function HabitRow({
               {habit.category}
             </span>
           )}
+
+          {/* Priority badge */}
+          {habit.priority && <PriorityBadge priority={habit.priority} />}
         </div>
 
         <div className="flex items-center gap-2 mt-0.5">
@@ -157,4 +160,29 @@ function shouldShowNotesButton(
   if (!log) return false;
   if (!isReadOnly) return true;
   return hasNotes;
+}
+
+function PriorityBadge({ priority }: { priority: string }) {
+  const styles: Record<string, string> = {
+    high: "bg-red-500/10 text-red-400",
+    normal: "bg-blue-500/10 text-blue-400",
+    low: "bg-neutral-800 text-neutral-500",
+  };
+
+  const labels: Record<string, string> = {
+    high: "High",
+    normal: "Normal",
+    low: "Low",
+  };
+
+  return (
+    <span
+      className={cn(
+        "shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider",
+        styles[priority] ?? "bg-neutral-800 text-neutral-500",
+      )}
+    >
+      {labels[priority] ?? priority}
+    </span>
+  );
 }
