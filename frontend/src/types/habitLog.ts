@@ -20,6 +20,7 @@ export interface DayEntry {
   habit: Habit;
   log: HabitLog | null;
   periodCompleted: boolean;
+  periodLog: HabitLog | null;
 }
 
 export interface DateRangeEntry {

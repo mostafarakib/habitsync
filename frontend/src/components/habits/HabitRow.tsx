@@ -29,16 +29,24 @@ export function HabitRow({
   onNotesClick,
 }: HabitRowProps) {
   const { habit, log } = entry;
+  const { type, flexible } = habit.frequency;
+
+  const isFlexibleOrMonthly =
+    (type === "weekly" && flexible) || type === "monthly";
+
+  // Use periodLog for flexible/monthly — it has the most recent value
+  // Use today's log for daily/scheduled weekly
+  const effectiveLog = isFlexibleOrMonthly ? (entry.periodLog ?? log) : log;
 
   const logMutation = useLogValueMutation(date);
   const isScheduled = isScheduledOnDate(habit, selectedDate);
   const isCompleted = isHabitCompleted(habit, log, entry.periodCompleted);
-  const hasNotes = !!log?.notes?.trim();
+  const hasNotes = !!effectiveLog?.notes?.trim();
 
   function handleValueChange(value: number) {
     logMutation.mutate({
       habitId: habit._id,
-      logId: log?._id ?? null,
+      logId: effectiveLog?._id ?? null,
       date,
       value,
     });
@@ -98,7 +106,7 @@ export function HabitRow({
         <StreakBadge habitId={habit._id} />
 
         {/* Notes button — only when log exists */}
-        {shouldShowNotesButton(log, isReadOnly, hasNotes) && (
+        {shouldShowNotesButton(effectiveLog, isReadOnly, hasNotes) && (
           <button
             onClick={() => onNotesClick(entry)}
             className={cn(
@@ -119,7 +127,7 @@ export function HabitRow({
         {isScheduled && (
           <HabitLogControl
             habit={habit}
-            log={log}
+            log={effectiveLog}
             isReadOnly={isReadOnly}
             isPending={logMutation.isPending}
             periodCompleted={entry.periodCompleted}

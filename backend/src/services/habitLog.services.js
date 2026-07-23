@@ -189,62 +189,86 @@ const getHabitLogsByDateService = async (userId, date, clientDate) => {
     .map((h) => h._id);
 
   // Fetch completed logs for flexible weekly habits in the current week
+  // Fetch all logs (not just completed) for flexible weekly habits in current week
+  // sorted by date desc so most recent is first
   const weeklyPeriodLogs =
     flexibleWeeklyHabitIds.length > 0
       ? await HabitLog.find({
           user: userId,
           habit: { $in: flexibleWeeklyHabitIds },
-          isCompleted: true,
           date: { $gte: weekStart, $lt: weekEnd },
         })
-          .select("habit")
+          .sort({ date: -1 })
           .lean()
       : [];
 
-  // Fetch completed logs for monthly habits in the current month
+  // Fetch all logs for monthly habits in current month
+  // sorted by date desc so most recent is first
   const monthlyPeriodLogs =
     monthlyHabitIds.length > 0
       ? await HabitLog.find({
           user: userId,
           habit: { $in: monthlyHabitIds },
-          isCompleted: true,
           date: { $gte: monthStart, $lt: monthEnd },
         })
-          .select("habit")
+          .sort({ date: -1 })
           .lean()
       : [];
 
-  // Build sets for O(1) lookup
+  // Build maps: habitId → most recent log in period
+  const weeklyPeriodLogMap = new Map();
+  weeklyPeriodLogs.forEach((l) => {
+    const id = l.habit.toString();
+    if (!weeklyPeriodLogMap.has(id)) {
+      weeklyPeriodLogMap.set(id, l); // first = most recent (sorted desc)
+    }
+  });
+
+  const monthlyPeriodLogMap = new Map();
+  monthlyPeriodLogs.forEach((l) => {
+    const id = l.habit.toString();
+    if (!monthlyPeriodLogMap.has(id)) {
+      monthlyPeriodLogMap.set(id, l);
+    }
+  });
+
+  // Build completed sets for boolean periodCompleted check
   const weeklyCompletedSet = new Set(
-    weeklyPeriodLogs.map((l) => l.habit.toString())
+    weeklyPeriodLogs.filter((l) => l.isCompleted).map((l) => l.habit.toString())
   );
 
   const monthlyCompletedSet = new Set(
-    monthlyPeriodLogs.map((l) => l.habit.toString())
+    monthlyPeriodLogs
+      .filter((l) => l.isCompleted)
+      .map((l) => l.habit.toString())
   );
 
   // merge habits + logs + periodCompleted
-
   const result = habits.map((habit) => {
     const habitId = habit._id.toString();
     const log = logMap.get(habitId) || null;
     const { type, flexible } = habit.frequency;
 
     let periodCompleted = false;
+    let periodLog = null; // most recent log in the period
 
     if (type === "weekly" && flexible) {
       periodCompleted = weeklyCompletedSet.has(habitId);
+      periodLog = weeklyPeriodLogMap.get(habitId) || null;
     } else if (type === "monthly") {
       periodCompleted = monthlyCompletedSet.has(habitId);
+      periodLog = monthlyPeriodLogMap.get(habitId) || null;
     } else {
       // daily and scheduled weekly — period = just today
       periodCompleted = log?.isCompleted ?? false;
+      periodLog = null; // daily/scheduled weekly use log directly
     }
 
     return {
       habit,
       log,
       periodCompleted,
+      periodLog,
     };
   });
 

@@ -53,6 +53,20 @@ export default function DashboardPage() {
     }
   }
 
+  function handleNotesClick(entry: DayEntry) {
+    const { type, flexible } = entry.habit.frequency;
+    const isFlexibleOrMonthly =
+      (type === "weekly" && flexible) || type === "monthly";
+
+    // For flexible/monthly swap log with periodLog so NotesModal
+    // uses the correct log ID for saving
+    const effectiveEntry: DayEntry = isFlexibleOrMonthly
+      ? { ...entry, log: entry.periodLog ?? entry.log }
+      : entry;
+
+    setNotesEntry(effectiveEntry);
+  }
+
   return (
     <div className="min-h-dvh bg-neutral-950">
       <Header />
@@ -102,7 +116,7 @@ export default function DashboardPage() {
           isLoading={isLoading}
           error={error instanceof Error ? error : null}
           onRefetch={refetch}
-          onNotesClick={setNotesEntry}
+          onNotesClick={handleNotesClick}
           onCreateHabit={() => setCreateOpen(true)}
         />
       </main>
