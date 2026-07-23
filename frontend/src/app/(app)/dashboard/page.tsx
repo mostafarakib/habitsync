@@ -37,7 +37,7 @@ export default function DashboardPage() {
   );
 
   const completedCount = scheduledEntries.filter(
-    (entry) => entry.log?.isCompleted,
+    (entry) => entry.periodCompleted,
   ).length;
 
   const scheduledCount = scheduledEntries.length;

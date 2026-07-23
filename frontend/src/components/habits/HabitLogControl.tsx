@@ -8,6 +8,7 @@ interface HabitLogControlProps {
   log: HabitLog | null;
   isReadOnly: boolean;
   isPending: boolean;
+  periodCompleted: boolean;
   onValueChange: (value: number) => void;
 }
 
@@ -16,14 +17,17 @@ export function HabitLogControl({
   log,
   isReadOnly,
   isPending,
+  periodCompleted,
   onValueChange,
 }: HabitLogControlProps) {
   if (habit.evaluationType === "boolean") {
     return (
       <BooleanControl
+        habit={habit}
         log={log}
         isReadOnly={isReadOnly}
         isPending={isPending}
+        periodCompleted={periodCompleted}
         onValueChange={onValueChange}
       />
     );
@@ -43,19 +47,30 @@ export function HabitLogControl({
 // -- Boolean Control
 
 interface BooleanControlProps {
+  habit: Habit;
   log: HabitLog | null;
   isReadOnly: boolean;
   isPending: boolean;
+  periodCompleted: boolean;
   onValueChange: (value: number) => void;
 }
 
 function BooleanControl({
+  habit,
   log,
   isReadOnly,
   isPending,
+  periodCompleted,
   onValueChange,
 }: BooleanControlProps) {
-  const isDone = log?.value === 1;
+  const { type, flexible } = habit.frequency;
+
+  // For flexible weekly and monthly — use period completion
+  // For daily and scheduled weekly — use today's log value
+  const isFlexibleOrMonthly =
+    (type === "weekly" && flexible) || type === "monthly";
+
+  const isDone = isFlexibleOrMonthly ? periodCompleted : log?.value === 1;
 
   return (
     <Toggle

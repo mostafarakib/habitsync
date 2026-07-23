@@ -47,14 +47,29 @@ export function useLogValueMutation(date: string) {
     },
 
     onSuccess: (newLog, { habitId }) => {
-      // replace the log in the cache with the new log returned from the server
       queryClient.setQueryData<DayEntry[]>(queryKey, (old = []) =>
-        old.map((entry) =>
-          entry.habit._id === habitId ? { ...entry, log: newLog } : entry,
-        ),
+        old.map((entry) => {
+          if (entry.habit._id !== habitId) return entry;
+
+          const updatedLog = newLog;
+          const { type, flexible } = entry.habit.frequency;
+
+          // Update periodCompleted optimistically for flexible/monthly
+          let periodCompleted = entry.periodCompleted;
+          if ((type === "weekly" && flexible) || type === "monthly") {
+            // If this log is now completed, period is completed
+            // If uncompleted, we can't know without refetching — let onSettled handle it
+            if (updatedLog.isCompleted) {
+              periodCompleted = true;
+            }
+          } else {
+            periodCompleted = updatedLog.isCompleted;
+          }
+
+          return { ...entry, log: updatedLog, periodCompleted };
+        }),
       );
 
-      // Value change may affect streak — invalidate it
       queryClient.invalidateQueries({
         queryKey: queryKeys.streaks.detail(habitId),
       });

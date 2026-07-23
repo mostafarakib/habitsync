@@ -85,7 +85,19 @@ function ordinalSuffix(n: number): string {
   }
 }
 
-export function isHabitCompleted(habit: Habit, log: HabitLog | null): boolean {
+export function isHabitCompleted(
+  habit: Habit,
+  log: HabitLog | null,
+  periodCompleted?: boolean,
+): boolean {
+  // For flexible weekly and monthly — use period completion
+  if (periodCompleted !== undefined) {
+    const { type, flexible } = habit.frequency;
+    if ((type === "weekly" && flexible) || type === "monthly") {
+      return periodCompleted;
+    }
+  }
+
   if (!log) return false;
 
   if (habit.evaluationType === "boolean") {
@@ -119,7 +131,6 @@ const PRIORITY_ORDER: Record<string, number> = {
 export function sortEntries(
   entries: DayEntry[],
   sortBy: SortOption,
-  habit?: Habit,
 ): DayEntry[] {
   return [...entries].sort((a, b) => {
     switch (sortBy) {

@@ -155,16 +155,96 @@ const getHabitLogsByDateService = async (userId, date, clientDate) => {
     logMap.set(log.habit.toString(), log);
   });
 
-  // merge habits + logs
+  // period ranges for flexible/monthly habits
+
+  // Week range — Sunday to Saturday containing the requested date
+  const dayOfWeek = normalizedDate.getUTCDay(); // 0 = Sunday
+
+  const weekStart = new Date(normalizedDate);
+  weekStart.setUTCDate(normalizedDate.getUTCDate() - dayOfWeek); // back to Sunday
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 7); // next Sunday (exclusive)
+
+  // Month range — first to last day of the month
+  const monthStart = new Date(
+    Date.UTC(normalizedDate.getUTCFullYear(), normalizedDate.getUTCMonth(), 1)
+  );
+
+  const monthEnd = new Date(
+    Date.UTC(
+      normalizedDate.getUTCFullYear(),
+      normalizedDate.getUTCMonth() + 1,
+      1
+    )
+  ); // first day of next month (exclusive)
+
+  // Identify which habits need period completion checks
+  const flexibleWeeklyHabitIds = habits
+    .filter((h) => h.frequency.type === "weekly" && h.frequency.flexible)
+    .map((h) => h._id);
+
+  const monthlyHabitIds = habits
+    .filter((h) => h.frequency.type === "monthly")
+    .map((h) => h._id);
+
+  // Fetch completed logs for flexible weekly habits in the current week
+  const weeklyPeriodLogs =
+    flexibleWeeklyHabitIds.length > 0
+      ? await HabitLog.find({
+          user: userId,
+          habit: { $in: flexibleWeeklyHabitIds },
+          isCompleted: true,
+          date: { $gte: weekStart, $lt: weekEnd },
+        })
+          .select("habit")
+          .lean()
+      : [];
+
+  // Fetch completed logs for monthly habits in the current month
+  const monthlyPeriodLogs =
+    monthlyHabitIds.length > 0
+      ? await HabitLog.find({
+          user: userId,
+          habit: { $in: monthlyHabitIds },
+          isCompleted: true,
+          date: { $gte: monthStart, $lt: monthEnd },
+        })
+          .select("habit")
+          .lean()
+      : [];
+
+  // Build sets for O(1) lookup
+  const weeklyCompletedSet = new Set(
+    weeklyPeriodLogs.map((l) => l.habit.toString())
+  );
+
+  const monthlyCompletedSet = new Set(
+    monthlyPeriodLogs.map((l) => l.habit.toString())
+  );
+
+  // merge habits + logs + periodCompleted
 
   const result = habits.map((habit) => {
     const habitId = habit._id.toString();
-
     const log = logMap.get(habitId) || null;
+    const { type, flexible } = habit.frequency;
+
+    let periodCompleted = false;
+
+    if (type === "weekly" && flexible) {
+      periodCompleted = weeklyCompletedSet.has(habitId);
+    } else if (type === "monthly") {
+      periodCompleted = monthlyCompletedSet.has(habitId);
+    } else {
+      // daily and scheduled weekly — period = just today
+      periodCompleted = log?.isCompleted ?? false;
+    }
 
     return {
       habit,
       log,
+      periodCompleted,
     };
   });
 

@@ -32,7 +32,7 @@ export function HabitRow({
 
   const logMutation = useLogValueMutation(date);
   const isScheduled = isScheduledOnDate(habit, selectedDate);
-  const isCompleted = isHabitCompleted(habit, log);
+  const isCompleted = isHabitCompleted(habit, log, entry.periodCompleted);
   const hasNotes = !!log?.notes?.trim();
 
   function handleValueChange(value: number) {
@@ -122,6 +122,7 @@ export function HabitRow({
             log={log}
             isReadOnly={isReadOnly}
             isPending={logMutation.isPending}
+            periodCompleted={entry.periodCompleted}
             onValueChange={handleValueChange}
           />
         )}
