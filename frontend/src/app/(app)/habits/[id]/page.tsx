@@ -25,7 +25,11 @@ import {
 } from "@/lib/hooks/useHabits";
 import { useStreak } from "@/lib/hooks/useStreak";
 import { useHabitLogs } from "@/lib/hooks/useHabitLogs";
-import { frequencyLabel, isStreakRelevant } from "@/lib/utils/habit";
+import {
+  frequencyLabel,
+  isHabitEnded,
+  isStreakRelevant,
+} from "@/lib/utils/habit";
 import { fromApiDate, toDisplayDate } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
 
@@ -102,6 +106,7 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
 
   const streakCount = streak?.streak ?? 0;
   const streakCounts = isStreakRelevant(habit);
+  const isEnded = isHabitEnded(habit);
 
   return (
     <div className="min-h-dvh bg-neutral-950">
@@ -129,19 +134,31 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
           </Link>
         </div>
 
-        {/* Edit button */}
-        <Link href={`/habits/${habit._id}/edit`}>
-          <Button variant="ghost" size="icon" aria-label="Edit habit">
-            <Pencil size={15} />
-          </Button>
-        </Link>
+        {/* Edit button — disabled for ended habits */}
+        {!isEnded && (
+          <Link href={`/habits/${habit._id}/edit`}>
+            <Button variant="ghost" size="icon" aria-label="Edit habit">
+              <Pencil size={15} />
+            </Button>
+          </Link>
+        )}
       </header>
 
       <main className="max-w-lg mx-auto w-full px-4 py-6 flex flex-col gap-6">
         {/* ── Habit info ── */}
         <section className="flex flex-col gap-3">
           <h1 className="text-base font-semibold text-neutral-100 truncate max-w-50">
-            {habit.title}
+            {habit.title}{" "}
+            {habit.archived && (
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-500">
+                Archived
+              </span>
+            )}
+            {isEnded && !habit.archived && (
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-600">
+                Ended
+              </span>
+            )}
           </h1>
 
           {habit.description && (
@@ -172,8 +189,14 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
 
           {/* Start date */}
           <p className="text-xs text-neutral-600">
-            Started {toDisplayDate(fromApiDate(habit.startDate))}
+            Started on {toDisplayDate(fromApiDate(habit.startDate))}
           </p>
+          {/* End date */}
+          {isEnded && habit.endDate && (
+            <p className="text-xs text-neutral-600">
+              Ended on {toDisplayDate(fromApiDate(habit.endDate))}
+            </p>
+          )}
         </section>
 
         {/* ── Streak card ── */}
@@ -213,7 +236,7 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
         {/* ── Log calendar ── */}
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold text-neutral-300">
-            Last 30 days
+            Last 4 months including current month
           </h2>
 
           <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 overflow-x-auto">
@@ -227,6 +250,7 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
             variant={habit.archived ? "outline" : "danger"}
             size="md"
             onClick={handleArchiveToggle}
+            disabled={isEnded}
             loading={archiveHabit.isPending}
             className="w-full"
           >

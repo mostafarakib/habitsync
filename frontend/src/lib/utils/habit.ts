@@ -1,6 +1,7 @@
 import type { Habit, HabitLog, DayEntry } from "@/types";
 import { parseISO } from "date-fns";
 import { getUtcDate, getUtcDay } from "./date";
+import { fromApiDate, todayUtc } from "@/lib/utils/date";
 
 export function isScheduledOnDate(habit: Habit, date: Date): boolean {
   const { type, daysOfWeek, flexible } = habit.frequency;
@@ -163,4 +164,13 @@ export function sortEntries(
         return 0;
     }
   });
+}
+
+export function isHabitEnded(habit: Habit | undefined): boolean {
+  if (!habit?.endDate) return false;
+
+  const end = fromApiDate(habit.endDate);
+  const today = todayUtc();
+  // end date is strictly before today — habit's lifecycle is complete
+  return end < today;
 }
