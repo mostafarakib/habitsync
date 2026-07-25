@@ -467,21 +467,6 @@ const getHabitLogsByHabitService = async (
       if (normalizedEndDate < normalizedStartDate) {
         throw new ApiError(400, "End date cannot be before start date");
       }
-
-      const diffInDays = Math.round(
-        (normalizedEndDate - normalizedStartDate) / (1000 * 60 * 60 * 24)
-      );
-
-      if (diffInDays > 30) {
-        throw new ApiError(400, "Date range cannot exceed 30 days");
-      } else {
-        // default endDate to 30 days from startDate, capped at today
-        const thirtyDaysFromStart = new Date(normalizedStartDate);
-        thirtyDaysFromStart.setDate(thirtyDaysFromStart.getDate() + 30);
-
-        normalizedEndDate =
-          thirtyDaysFromStart > today ? today : thirtyDaysFromStart;
-      }
     }
   }
 

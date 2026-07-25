@@ -21,7 +21,11 @@ interface CalendarDay {
 function buildDays(habit: Habit, logs: HabitLog[]): CalendarDay[] {
   const today = todayUtc();
 
-  // Build a map of dateStr → log for quick lookup
+  // Start from first day of the month 3 months ago
+  const startDate = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 3, 1),
+  );
+
   const logMap = new Map<string, HabitLog>();
   logs.forEach((log) => {
     const key = toApiDate(new Date(log.date));
@@ -30,8 +34,10 @@ function buildDays(habit: Habit, logs: HabitLog[]): CalendarDay[] {
 
   const days: CalendarDay[] = [];
 
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+  // Build days from startDate to today
+  const current = new Date(startDate);
+  while (current <= today) {
+    const date = new Date(current);
     const dateStr = toApiDate(date);
     const log = logMap.get(dateStr) ?? null;
     const isScheduled = isScheduledOnDate(habit, date);
@@ -45,6 +51,8 @@ function buildDays(habit: Habit, logs: HabitLog[]): CalendarDay[] {
       isCompleted: completed,
       isFuture: false,
     });
+
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   return days;
@@ -113,32 +121,62 @@ export function LogCalendar({ habit, logs }: LogCalendarProps) {
               key={i}
               className="h-3.5 flex items-center text-[10px] text-neutral-600 w-6"
             >
-              {/* Only show Mon, Wed, Fri */}
-              {i % 2 === 0 ? label : ""}
+              {label}
             </div>
           ))}
         </div>
 
         {/* Week columns */}
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="flex flex-col gap-1">
-            {week.map((day, dayIndex) => (
-              <CalendarCell key={dayIndex} day={day} habit={habit} />
-            ))}
-          </div>
-        ))}
+        {weeks.map((week, weekIndex) => {
+          const currentMonth = week.find((d) => d !== null)?.date.getUTCMonth();
+          const nextWeek = weeks[weekIndex + 1];
+          const nextMonth = nextWeek
+            ?.find((d) => d !== null)
+            ?.date.getUTCMonth();
+          const isMonthEnd =
+            nextWeek !== undefined && currentMonth !== nextMonth;
+
+          return (
+            <div
+              key={weekIndex}
+              className="flex flex-col gap-1"
+              style={{ marginRight: isMonthEnd ? "6px" : undefined }}
+            >
+              {week.map((day, dayIndex) => (
+                <CalendarCell key={dayIndex} day={day} habit={habit} />
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-3 pt-1 pl-8">
-        <span className="text-[10px] text-neutral-600">Less</span>
-        <div className="flex gap-1">
-          <div className="h-3.5 w-3.5 rounded-sm bg-neutral-800 border border-neutral-700" />
-          <div className="h-3.5 w-3.5 rounded-sm bg-green-900" />
-          <div className="h-3.5 w-3.5 rounded-sm bg-green-700" />
-          <div className="h-3.5 w-3.5 rounded-sm bg-green-500" />
-        </div>
-        <span className="text-[10px] text-neutral-600">More</span>
+      <div className="flex items-center gap-3 pt-2 pl-8">
+        {habit.evaluationType === "boolean" ? (
+          <>
+            <div className="flex items-center gap-1.5">
+              <div className="h-3.5 w-3.5 rounded-sm bg-neutral-800 border border-neutral-700" />
+              <span className="text-[10px] text-neutral-600">
+                Not completed
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-3.5 w-3.5 rounded-sm bg-green-500" />
+              <span className="text-[10px] text-neutral-600">Completed</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="text-[10px] text-neutral-600">Less</span>
+            <div className="flex gap-1">
+              <div className="h-3.5 w-3.5 rounded-sm bg-neutral-800 border border-neutral-700" />
+              <div className="h-3.5 w-3.5 rounded-sm bg-green-900" />
+              <div className="h-3.5 w-3.5 rounded-sm bg-green-700" />
+              <div className="h-3.5 w-3.5 rounded-sm bg-green-500" />
+            </div>
+            <span className="text-[10px] text-neutral-600">More</span>
+          </>
+        )}
       </div>
     </div>
   );
