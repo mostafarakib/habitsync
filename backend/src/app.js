@@ -23,6 +23,11 @@ import authRoutes from "./routes/auth.routes.js";
 import habitRoutes from "./routes/habit.routes.js";
 import habitLogRoutes from "./routes/habitLog.routes.js";
 
+// Health check — used by UptimeRobot to keep server alive
+app.get("/api/v1/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 // routes declaration
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/habits", habitRoutes);
