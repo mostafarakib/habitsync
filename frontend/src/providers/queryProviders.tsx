@@ -14,8 +14,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
               if (error instanceof ApiError && error.statusCode === 401) {
                 return false;
               }
-              return failureCount < 1;
+              return failureCount < 3;
             },
+            retryDelay: (attemptIndex) =>
+              Math.min(1000 * 2 ** attemptIndex, 10000), // 1s, 2s, 4s
             refetchOnWindowFocus: false,
           },
         },

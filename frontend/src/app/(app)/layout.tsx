@@ -20,6 +20,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-neutral-950">
         <Spinner size="lg" />
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-sm text-neutral-400">Loading HabitSync</p>
+          <p className="text-xs text-neutral-600 animate-pulse">
+            This may take a moment on first visit…
+          </p>
+        </div>
       </div>
     );
   }
