@@ -9,7 +9,6 @@ const createHabitService = async (userId, habitData) => {
 };
 
 const getHabitsByUserService = async (userId, filters = {}) => {
-  // base query to find habits for the user
   const query = { user: userId };
 
   /**
