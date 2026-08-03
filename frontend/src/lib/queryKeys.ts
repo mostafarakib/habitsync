@@ -22,4 +22,13 @@ export const queryKeys = {
   streaks: {
     detail: (habitId: string) => ["streaks", habitId] as const,
   },
+
+  // tasks
+  tasks: {
+    all: (completed?: boolean) =>
+      completed === undefined
+        ? (["tasks"] as const)
+        : (["tasks", completed] as const),
+    detail: (id: string) => ["tasks", "detail", id] as const,
+  },
 } as const;

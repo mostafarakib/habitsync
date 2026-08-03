@@ -6,7 +6,8 @@ import {
   getTasksByUser,
   toggleTaskCompletion,
   updateTask,
-} from "../controllers/task.controller";
+} from "../controllers/task.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
