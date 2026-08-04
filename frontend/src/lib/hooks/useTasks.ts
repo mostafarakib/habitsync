@@ -5,11 +5,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors/errorUtils";
 
-export function useTasks(completed?: boolean) {
+export function useTasks(completed?: boolean, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.tasks.all(completed),
     queryFn: () => taskApi.getAll(completed),
     staleTime: 30 * 1000, // 30 seconds
+    enabled: options?.enabled ?? true,
   });
 }
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoginPayload, RegisterPayload } from "@/types";
 import { toast } from "sonner";
 import { getErrorMessage } from "../errors/errorUtils";
+import { useTabStore } from "@/store/tabStore";
 
 export function useCurrentUser() {
   return useQuery({
@@ -59,6 +60,7 @@ export function useLogout() {
 
     onSuccess: () => {
       queryClient.clear();
+      useTabStore.getState().reset();
       router.push("/login");
     },
 
