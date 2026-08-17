@@ -24,14 +24,15 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       }),
   );
 
+  function isPublicPage() {
+    const path = window.location.pathname;
+    return path === "/" || path === "/login" || path === "/register";
+  }
+
   // Global 401 handler — only redirect if not already on an auth page
   queryClient.getQueryCache().config.onError = (error) => {
     if (error instanceof ApiError && error.statusCode === 401) {
-      const isAuthPage =
-        window.location.pathname === "/login" ||
-        window.location.pathname === "/register";
-
-      if (!isAuthPage) {
+      if (!isPublicPage()) {
         window.location.href = "/login";
       }
     }

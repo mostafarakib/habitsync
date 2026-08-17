@@ -8,3 +8,107 @@ html body[data-scroll-locked] {
   overflow: visible !important;
   margin-right: 0 !important;
 }
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUpScale {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cellIn {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes heroFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes heroFloatSecondary {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.7s ease-out forwards;
+}
+.fade-up-delay-1 {
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+.fade-up-delay-2 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+.fade-up-delay-3 {
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+.fade-up-scale {
+  animation: fadeUpScale 0.8s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-cell-in {
+  animation-name: cellIn;
+  animation-duration: 0.4s;
+  animation-timing-function: ease-out;
+}
+
+.hero-float {
+  animation: heroFloat 6s ease-in-out infinite;
+}
+
+.hero-float-secondary {
+  animation: heroFloatSecondary 5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .fade-up-delay-1,
+  .fade-up-delay-2,
+  .fade-up-delay-3,
+  .fade-up-scale,
+  .animate-cell-in,
+  .hero-float,
+  .hero-float-secondary {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
