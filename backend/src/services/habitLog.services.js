@@ -9,6 +9,7 @@ import {
   validateHabitLogWriteAllowed,
   validateDateFormat,
 } from "../utils/index.js";
+import { isScheduledDate, computeDayScore } from "../utils/streak.utils.js";
 
 // Create or update a habit log for a specific date
 const upsertHabitLogService = async (
@@ -648,97 +649,48 @@ const getHabitStreakService = async (userId, habitId, clientDate) => {
     throw new ApiError(404, "Habit not found");
   }
 
-  // fetch completed logs for that habit, sorted by date descending
-  const completedLogs = await HabitLog.find({
-    user: userId,
-    habit: habitId,
-    isCompleted: true,
-  })
-    .sort({ date: -1 })
-    .select("date")
-    .lean();
-
-  if (completedLogs.length === 0) {
-    return {
-      habitId,
-      streak: 0,
-    };
-  }
-
-  const completedDateSet = new Set(
-    completedLogs.map((log) => normalizeDate(log.date).toISOString())
-  );
-
-  //check if a date is a scheduled date for the habit
-  const isScheduledDate = (date) => {
-    const { type, daysOfWeek, flexible } = habit.frequency;
-
-    if (type === "daily") {
-      return true;
-    }
-    if (type === "weekly") {
-      // flexible weekly → never counts toward streak
-      if (flexible) return false;
-      // if daysOfWeek is specified, only those days count
-      if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
-        return daysOfWeek.includes(date.getUTCDay());
-      }
-      return false;
-    }
-    // monthly → always flexible, never counts toward streak
-    if (type === "monthly") return false;
-
-    return false;
-  };
-
   const today = clientDate
     ? normalizeDate(clientDate)
     : normalizeDate(new Date());
 
-  const mostRecentLogDate = normalizeDate(completedLogs[0].date);
+  const startBound = normalizeDate(habit.startDate);
 
-  // always check for missed scheduled days
-  let checkDate = new Date(today);
-  checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+  const logs = await HabitLog.find({
+    user: userId,
+    habit: habitId,
+    date: { $gte: startBound, $lte: today },
+  })
+    .select("date value isCompleted")
+    .lean();
 
-  while (checkDate > mostRecentLogDate) {
-    if (isScheduledDate(checkDate)) {
-      return {
-        habitId,
-        streak: 0,
-      };
-    }
-    checkDate.setUTCDate(checkDate.getUTCDate() - 1);
-  }
+  const logMap = new Map(
+    logs.map((l) => [normalizeDate(l.date).toISOString(), l])
+  );
 
-  // count consecutive completed logs from the most recent one until we find a break in the streak
   let streak = 0;
-  let currentDate = new Date(mostRecentLogDate);
+  let currentDate = new Date(today);
 
-  while (true) {
-    if (isScheduledDate(currentDate)) {
-      const dateKey = normalizeDate(currentDate).toISOString();
+  while (currentDate >= startBound) {
+    if (isScheduledDate(habit, currentDate)) {
+      const isToday = currentDate.getTime() === today.getTime();
+      const key = currentDate.toISOString();
+      const log = logMap.get(key) || null;
+      const score = computeDayScore(habit, log);
 
-      if (completedDateSet.has(dateKey)) {
-        streak++;
+      if (isToday) {
+        // today can only help the streak, never break it
+        if (score >= 50) streak += 1;
       } else {
-        // scheduled day with no completed log — streak is broken
-        break;
+        if (score === 0) break; // genuine miss, chain broken
+        if (score >= 50) streak += 1;
+        // 1-49% falls through, streak stays the same
       }
-    }
-
-    // if we have reached the habit start date, stop counting further back
-    if (currentDate <= normalizeDate(habit.startDate)) {
-      break;
     }
 
     currentDate.setUTCDate(currentDate.getUTCDate() - 1);
   }
 
-  return {
-    habitId,
-    streak,
-  };
+  return { habitId, streak };
 };
 
 export {

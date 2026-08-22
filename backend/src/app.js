@@ -23,6 +23,7 @@ import authRoutes from "./routes/auth.routes.js";
 import habitRoutes from "./routes/habit.routes.js";
 import habitLogRoutes from "./routes/habitLog.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import statsRoutes from "./routes/stats.routes.js";
 
 // Health check — used by UptimeRobot to keep server alive
 app.get("/api/v1/health", (req, res) => {
@@ -34,6 +35,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/habits", habitRoutes);
 app.use("/api/v1/habit-logs", habitLogRoutes);
 app.use("/api/v1/tasks", taskRoutes);
+app.use("/api/v1/stats", statsRoutes);
 
 // error handler import
 import { errorHandler } from "./middlewares/error.middleware.js";
