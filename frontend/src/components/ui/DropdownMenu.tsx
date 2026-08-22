@@ -9,12 +9,14 @@ interface DropdownMenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
   align?: "start" | "center" | "end";
+  side?: "top" | "bottom";
 }
 
 export function DropdownMenu({
   trigger,
   children,
   align = "end",
+  side = "bottom",
 }: DropdownMenuProps) {
   return (
     <Radix.Root>
@@ -24,6 +26,7 @@ export function DropdownMenu({
         <Radix.Content
           align={align}
           sideOffset={8}
+          side={side}
           className={cn(
             "z-50 min-w-45 rounded-xl p-1.5",
             "bg-neutral-900 border border-neutral-800",
@@ -31,6 +34,7 @@ export function DropdownMenu({
             "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
             "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
             "data-[side=bottom]:slide-in-from-top-2",
+            "data-[side=top]:slide-in-from-bottom-2",
           )}
         >
           {children}

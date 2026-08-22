@@ -46,17 +46,6 @@ export function Header() {
             </button>
           }
         >
-          <DropdownMenuLabel>Manage</DropdownMenuLabel>
-
-          <Link href="/habits/archived">
-            <DropdownMenuItem>
-              <Archive size={14} />
-              Archived habits
-            </DropdownMenuItem>
-          </Link>
-
-          <DropdownMenuSeparator />
-
           <DropdownMenuLabel>Account</DropdownMenuLabel>
 
           <DropdownMenuItem

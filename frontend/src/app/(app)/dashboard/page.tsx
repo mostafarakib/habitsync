@@ -94,104 +94,92 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-neutral-950 pb-20">
+    <div className="min-h-dvh bg-neutral-950">
       <Header />
 
-      <main className="max-w-lg mx-auto w-full">
-        {/* Date navigation — habits only */}
-        {activeTab === "habits" && <DateNavigator />}
+      <div className="max-w-lg mx-auto w-full relative">
+        <main>
+          {/* Date navigation — habits only */}
+          {activeTab === "habits" && <DateNavigator />}
 
-        {/* Progress bar — habits only */}
-        {activeTab === "habits" && scheduledCount > 0 && !habitsLoading && (
-          <div
-            className="mx-4 mb-3 px-4 py-3 rounded-xl border bg-neutral-900
+          {/* Progress bar — habits only */}
+          {activeTab === "habits" && scheduledCount > 0 && !habitsLoading && (
+            <div
+              className="mx-4 mb-3 px-4 py-3 rounded-xl border bg-neutral-900
             border-neutral-800 flex items-center justify-between gap-4"
-          >
-            <div>
-              <p
-                className={`text-sm font-semibold ${allDone ? "text-green-400" : "text-neutral-100"}`}
-              >
-                {allDone
-                  ? "All done! 🎉"
-                  : `${completedCount} of ${scheduledCount} done`}
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                {scheduledCount} scheduled today
-              </p>
-            </div>
+            >
+              <div>
+                <p
+                  className={`text-sm font-semibold ${allDone ? "text-green-400" : "text-neutral-100"}`}
+                >
+                  {allDone
+                    ? "All done! 🎉"
+                    : `${completedCount} of ${scheduledCount} done`}
+                </p>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  {scheduledCount} scheduled today
+                </p>
+              </div>
 
-            <div className="w-24 h-1.5 rounded-full bg-neutral-800 overflow-hidden shrink-0">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-500",
-                  allDone ? "bg-green-400" : "bg-violet-600",
-                )}
-                style={{ width: `${progress}%` }}
+              <div className="w-24 h-1.5 rounded-full bg-neutral-800 overflow-hidden shrink-0">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    allDone ? "bg-green-400" : "bg-violet-600",
+                  )}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ── Habits tab content ── */}
+          {activeTab === "habits" && (
+            <HabitList
+              entries={entries}
+              selectedDate={selectedDate}
+              dateStr={selectedDateStr}
+              isLoading={habitsLoading}
+              error={habitsError instanceof Error ? habitsError : null}
+              onRefetch={refetchHabits}
+              onNotesClick={handleNotesClick}
+              onCreateHabit={() => setCreateOpen(true)}
+            />
+          )}
+
+          {/* ── Tasks tab content ── */}
+          {activeTab === "tasks" && (
+            <div className="pt-4">
+              <TaskList
+                pendingTasks={pendingTasks}
+                completedTasks={completedTasks}
+                isLoading={tasksLoading}
+                error={pendingError instanceof Error ? pendingError : null}
+                onRefetch={refetchTasks}
+                onCreateTask={() => setCreateOpen(true)}
               />
             </div>
+          )}
+        </main>
+
+        {/* FAB — context aware */}
+        <div className="fixed bottom-24 left-0 right-6 z-20 pointer-events-none">
+          <div className="max-w-lg mx-auto w-full px-4 flex justify-end">
+            <Button
+              size="icon"
+              onClick={() => setCreateOpen(true)}
+              className="h-14 w-14 rounded-full bg-violet-600
+        hover:bg-violet-700 active:scale-95 transition-all duration-200
+        shadow-lg shadow-violet-900/40 cursor-pointer pointer-events-auto"
+              aria-label={
+                activeTab === "habits" ? "Create habit" : "Create task"
+              }
+            >
+              <Plus size={22} color="white" strokeWidth={2.5} />
+            </Button>
           </div>
-        )}
-
-        {/* ── Habits tab content ── */}
-        {activeTab === "habits" && (
-          <HabitList
-            entries={entries}
-            selectedDate={selectedDate}
-            dateStr={selectedDateStr}
-            isLoading={habitsLoading}
-            error={habitsError instanceof Error ? habitsError : null}
-            onRefetch={refetchHabits}
-            onNotesClick={handleNotesClick}
-            onCreateHabit={() => setCreateOpen(true)}
-          />
-        )}
-
-        {/* ── Tasks tab content ── */}
-        {activeTab === "tasks" && (
-          <div className="pt-4">
-            <TaskList
-              pendingTasks={pendingTasks}
-              completedTasks={completedTasks}
-              isLoading={tasksLoading}
-              error={pendingError instanceof Error ? pendingError : null}
-              onRefetch={refetchTasks}
-              onCreateTask={() => setCreateOpen(true)}
-            />
-          </div>
-        )}
-      </main>
-
-      {/* FAB — context aware */}
-      <Button
-        size="icon"
-        onClick={() => setCreateOpen(true)}
-        className="fixed bottom-24 right-6 h-14 w-14 rounded-full bg-violet-600
-          hover:bg-violet-700 active:scale-95 transition-all duration-200 shadow-lg shadow-violet-900/40 z-20 cursor-pointer"
-        aria-label={activeTab === "habits" ? "Create habit" : "Create task"}
-      >
-        <Plus size={22} color="white" strokeWidth={2.5} />
-      </Button>
-
-      {/* ── Tab switcher — sticky bottom ── */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-30 border-t border-neutral-800
-          bg-neutral-950/90 backdrop-blur-md"
-      >
-        <div className="max-w-lg mx-auto flex">
-          <TabButton
-            label="Habits"
-            icon={<CalendarCheck size={18} />}
-            active={activeTab === "habits"}
-            onClick={() => setActiveTab("habits")}
-          />
-          <TabButton
-            label="Tasks"
-            icon={<ListTodo size={18} />}
-            active={activeTab === "tasks"}
-            onClick={() => setActiveTab("tasks")}
-          />
         </div>
-      </nav>
+      </div>
 
       {/* Create sheet - context aware */}
       <Sheet
