@@ -31,4 +31,14 @@ export const queryKeys = {
         : (["tasks", completed] as const),
     detail: (id: string) => ["tasks", "detail", id] as const,
   },
+
+  //stats
+  stats: {
+    summary: ["stats", "summary"] as const,
+    habitPerformance: (period: number) =>
+      ["stats", "habitPerformance", period] as const,
+    heatmap: (startDate: string, endDate: string) =>
+      ["stats", "heatmap", startDate, endDate] as const,
+    overallStreak: ["stats", "overallStreak"] as const,
+  },
 } as const;

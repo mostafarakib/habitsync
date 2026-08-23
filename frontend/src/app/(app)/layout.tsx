@@ -31,9 +31,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) return null;
 
   return (
-    <>
+    <div className="pb-20 bg-neutral-950">
       <div>{children}</div>
       <BottomNav />
-    </>
+    </div>
   );
 }
