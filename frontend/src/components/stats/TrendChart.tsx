@@ -105,10 +105,11 @@ export function TrendChart({ days, period, onPeriodChange }: TrendChartProps) {
                   fontSize: 11,
                 }}
                 labelStyle={{ color: "#e5e5e5", marginBottom: 4 }}
-                formatter={(value: number) => [
-                  `${Math.round(value)}%`,
-                  "Avg completion",
-                ]}
+                formatter={(value) => {
+                  const num =
+                    typeof value === "number" ? value : Number(value) || 0;
+                  return [`${Math.round(num)}%`, "Avg completion"];
+                }}
                 labelFormatter={(_, payload) =>
                   payload?.[0]?.payload?.fullLabel ?? ""
                 }
