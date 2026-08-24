@@ -9,7 +9,6 @@ import {
   MoreHorizontal,
   Archive,
   CalendarX,
-  CircleCheck,
 } from "lucide-react";
 import { useTabStore } from "@/store/tabStore";
 import {
@@ -86,13 +85,6 @@ export function BottomNav() {
             <DropdownMenuItem>
               <CalendarX size={14} />
               Ended habits
-            </DropdownMenuItem>
-          </Link>
-
-          <Link href="/dashboard?tab=tasks&section=completed">
-            <DropdownMenuItem onClick={() => setActiveTab("tasks")}>
-              <CircleCheck size={14} />
-              Completed tasks
             </DropdownMenuItem>
           </Link>
         </DropdownMenu>

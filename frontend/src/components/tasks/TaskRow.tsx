@@ -16,22 +16,30 @@ export function TaskRow({ task }: TaskRowProps) {
   const overdue = isTaskOverdue(task);
   const dueLabel = taskDueDateLabel(task);
 
+  const priorityColor = {
+    high: "border-amber-500",
+    normal: "border-blue-500",
+    low: "border-neutral-600",
+  }[task.priority ?? "normal"];
+
   function handleToggle(e: React.MouseEvent) {
-    e.preventDefault(); // don't navigate when clicking the checkbox
+    e.preventDefault();
     e.stopPropagation();
-    toggleStatus.mutate({ id: task._id, isCompleted: !task.isCompleted });
+
+    toggleStatus.mutate({
+      id: task._id,
+      isCompleted: !task.isCompleted,
+    });
   }
 
   return (
     <Link
       href={`/tasks/${task._id}`}
       className={cn(
-        "flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-200",
-        task.isCompleted
-          ? "bg-neutral-900/50 border-neutral-800/50"
-          : overdue
-            ? "bg-red-500/5 border-red-500/20"
-            : "bg-neutral-900 border-neutral-800",
+        "flex items-center gap-3 pl-3 pr-4 py-3.5 rounded-r-lg bg-neutral-900 transition-all duration-200",
+        "border-l-[3px]",
+        priorityColor,
+        task.isCompleted && "opacity-60",
       )}
     >
       {/* Checkbox */}
@@ -76,8 +84,6 @@ export function TaskRow({ task }: TaskRowProps) {
               {task.category}
             </span>
           )}
-
-          <PriorityBadge priority={task.priority} />
         </div>
 
         <div className="flex items-center gap-2 mt-0.5">
@@ -101,32 +107,5 @@ export function TaskRow({ task }: TaskRowProps) {
         </span>
       )}
     </Link>
-  );
-}
-
-// ── Priority badge ────────────────────────────────────────────────────────────
-
-function PriorityBadge({ priority }: { priority: string }) {
-  const styles: Record<string, string> = {
-    high: "bg-red-500/10 text-red-400",
-    normal: "bg-blue-500/10 text-blue-400",
-    low: "bg-neutral-800 text-neutral-500",
-  };
-
-  const labels: Record<string, string> = {
-    high: "High",
-    normal: "Normal",
-    low: "Low",
-  };
-
-  return (
-    <span
-      className={cn(
-        "shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider",
-        styles[priority] ?? "bg-neutral-800 text-neutral-500",
-      )}
-    >
-      {labels[priority] ?? priority}
-    </span>
   );
 }

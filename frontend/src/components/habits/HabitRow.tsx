@@ -52,16 +52,19 @@ export function HabitRow({
     });
   }
 
+  const priorityColor = {
+    high: "border-amber-500",
+    normal: "border-blue-500",
+    low: "border-neutral-600",
+  }[habit.priority ?? "normal"];
+
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all duration-200",
-        // Completion state
-        isCompleted
-          ? "bg-neutral-800/60 border-violet-500/30"
-          : "bg-neutral-900 border-neutral-800",
-        // Unscheduled — dimmed
-        !isScheduled && "opacity-40",
+        "flex items-center gap-3 pl-3 pr-4 py-3.5 rounded-r-lg bg-neutral-900 transition-all duration-200",
+        "border-l-[3px]",
+        priorityColor,
+        isScheduled ? isCompleted && "opacity-60" : "opacity-40",
       )}
     >
       {/* ── Left: Habit info ── */}
@@ -83,9 +86,6 @@ export function HabitRow({
               {habit.category}
             </span>
           )}
-
-          {/* Priority badge */}
-          {habit.priority && <PriorityBadge priority={habit.priority} />}
         </div>
 
         <div className="flex items-center gap-2 mt-0.5">
@@ -169,29 +169,4 @@ function shouldShowNotesButton(
   if (!log) return false;
   if (!isReadOnly) return true;
   return hasNotes;
-}
-
-function PriorityBadge({ priority }: { priority: string }) {
-  const styles: Record<string, string> = {
-    high: "bg-red-500/10 text-red-400",
-    normal: "bg-blue-500/10 text-blue-400",
-    low: "bg-neutral-800 text-neutral-500",
-  };
-
-  const labels: Record<string, string> = {
-    high: "High",
-    normal: "Normal",
-    low: "Low",
-  };
-
-  return (
-    <span
-      className={cn(
-        "shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider",
-        styles[priority] ?? "bg-neutral-800 text-neutral-500",
-      )}
-    >
-      {labels[priority] ?? priority}
-    </span>
-  );
 }

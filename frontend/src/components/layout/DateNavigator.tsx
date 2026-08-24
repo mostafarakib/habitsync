@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { useDateStore } from "@/store/dateStore";
 import {
   toDisplayDate,
@@ -70,21 +70,19 @@ export function DateNavigator() {
         {/* Visible date button */}
         <button
           onClick={openDatePicker}
-          className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg
-            hover:bg-neutral-800 transition-colors"
+          className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
         >
-          <span className="text-base font-semibold tracking-tight text-neutral-100">
-            {toDisplayDate(selectedDate)}
-          </span>
-
-          {readOnly && (
-            <span
-              className="text-[10px] font-medium uppercase tracking-wider
-              px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400"
-            >
-              Read-only
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-base font-semibold tracking-tight text-neutral-100">
+              {toDisplayDate(selectedDate)}
             </span>
-          )}
+            {readOnly && (
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">
+                Read-only
+              </span>
+            )}
+          </div>
+          <Calendar size={15} className="text-neutral-500 shrink-0 ml-1" />
         </button>
       </div>
 
