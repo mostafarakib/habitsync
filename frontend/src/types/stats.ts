@@ -22,4 +22,6 @@ export interface HeatmapDay {
   date: string; // YYYY-MM-DD
   percent: number | null; // null = rest day, nothing scheduled
   scheduledCount: number;
+  value?: number | null;
+  targetValue?: number | null;
 }

@@ -27,3 +27,16 @@ export function useHeatmap(startDate: string, endDate: string) {
     enabled: !!startDate && !!endDate,
   });
 }
+
+export function useHabitHeatmap(
+  habitId: string,
+  startDate: string,
+  endDate: string,
+) {
+  return useQuery({
+    queryKey: queryKeys.stats.habitHeatmap(habitId, startDate, endDate),
+    queryFn: () => statsApi.getHabitHeatmap(habitId, startDate, endDate),
+    staleTime: 60 * 1000,
+    enabled: !!habitId && !!startDate && !!endDate,
+  });
+}

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Habit from "../models/habit.model.js";
 import HabitLog from "../models/habitLog.model.js";
 import { ApiError, normalizeDate, validateDateFormat } from "../utils/index.js";
@@ -19,7 +20,7 @@ function habitExistsOn(habit, date) {
   return true;
 }
 
-// ── Overall streak (percentage-of-day based) ──────────────────────────────────
+// Overall streak (percentage-of-day based)
 
 const getOverallStreakService = async (userId, clientDate) => {
   const today = clientDate
@@ -92,7 +93,7 @@ const getOverallStreakService = async (userId, clientDate) => {
   return { streak };
 };
 
-// ── Daily completion heatmap ───────────────────────────────────────────────────
+// Daily completion heatmap
 
 const getDailyCompletionHeatmapService = async (
   userId,
@@ -422,9 +423,102 @@ const getHabitPerformanceService = async (userId, period, clientDate) => {
 
   return results;
 };
+
+const getHabitHeatmapService = async (
+  userId,
+  habitId,
+  startDate,
+  endDate,
+  clientDate
+) => {
+  if (!habitId) {
+    throw new ApiError(400, "Habit ID is required");
+  }
+  if (!mongoose.Types.ObjectId.isValid(habitId)) {
+    throw new ApiError(400, "Invalid Habit ID");
+  }
+  if (!startDate || !endDate) {
+    throw new ApiError(400, "Start date and end date are required");
+  }
+  if (!validateDateFormat(startDate) || !validateDateFormat(endDate)) {
+    throw new ApiError(400, "Invalid date format");
+  }
+
+  const habit = await Habit.findOne({ _id: habitId, user: userId }).lean();
+  if (!habit) {
+    throw new ApiError(404, "Habit not found");
+  }
+
+  const today = clientDate
+    ? normalizeDate(clientDate)
+    : normalizeDate(new Date());
+
+  const normalizedStart = normalizeDate(startDate);
+  const normalizedEnd =
+    normalizeDate(endDate) > today ? today : normalizeDate(endDate);
+
+  if (normalizedEnd < normalizedStart) {
+    throw new ApiError(400, "End date cannot be before start date");
+  }
+
+  const nextOfEnd = new Date(normalizedEnd);
+  nextOfEnd.setUTCDate(nextOfEnd.getUTCDate() + 1);
+
+  const logs = await HabitLog.find({
+    user: userId,
+    habit: habitId,
+    date: { $gte: normalizedStart, $lt: nextOfEnd },
+  })
+    .select("date value isCompleted")
+    .lean();
+
+  const logsByDateKey = new Map();
+  logs.forEach((l) => {
+    logsByDateKey.set(normalizeDate(l.date).toISOString(), l);
+  });
+
+  function habitExistsOn(date) {
+    const start = normalizeDate(habit.startDate);
+    if (date < start) return false;
+    if (habit.endDate && date > normalizeDate(habit.endDate)) return false;
+    return true;
+  }
+
+  const result = [];
+  let cursor = new Date(normalizedStart);
+
+  while (cursor <= normalizedEnd) {
+    let percent = null; // rest day / not scheduled / doesn't exist yet
+    let value = null;
+    let targetValue = null;
+
+    if (habitExistsOn(cursor) && isScheduledDate(habit, cursor)) {
+      const log = logsByDateKey.get(cursor.toISOString()) || null;
+      percent = Math.round(computeDayScore(habit, log));
+      value = log?.value ?? null;
+      targetValue =
+        habit.evaluationType === "measurable" ? habit.targetValue : null;
+    }
+
+    result.push({
+      date: cursor.toISOString().split("T")[0],
+      percent,
+      scheduledCount:
+        habitExistsOn(cursor) && isScheduledDate(habit, cursor) ? 1 : 0,
+      value,
+      targetValue,
+    });
+
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return result;
+};
+
 export {
   getOverallStreakService,
   getDailyCompletionHeatmapService,
   getStatsSummaryService,
   getHabitPerformanceService,
+  getHabitHeatmapService,
 };

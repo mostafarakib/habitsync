@@ -40,5 +40,7 @@ export const queryKeys = {
     heatmap: (startDate: string, endDate: string) =>
       ["stats", "heatmap", startDate, endDate] as const,
     overallStreak: ["stats", "overallStreak"] as const,
+    habitHeatmap: (habitId: string, startDate: string, endDate: string) =>
+      ["stats", "habitHeatmap", habitId, startDate, endDate] as const,
   },
 } as const;

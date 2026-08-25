@@ -18,4 +18,9 @@ export const statsApi = {
     ),
 
   getOverallStreak: () => apiFetch<{ streak: number }>("/stats/streak"),
+
+  getHabitHeatmap: (habitId: string, startDate: string, endDate: string) =>
+    apiFetch<HeatmapDay[]>(
+      `/stats/heatmap/${habitId}?startDate=${startDate}&endDate=${endDate}`,
+    ),
 };

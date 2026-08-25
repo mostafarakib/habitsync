@@ -3,6 +3,7 @@ import {
   getDailyCompletionHeatmapService,
   getStatsSummaryService,
   getHabitPerformanceService,
+  getHabitHeatmapService,
 } from "../services/stats.services.js";
 import { ApiResponse, asyncHandler } from "../utils/index.js";
 
@@ -59,4 +60,29 @@ const getHabitPerformance = asyncHandler(async (req, res) => {
     );
 });
 
-export { getOverallStreak, getHeatmap, getSummary, getHabitPerformance };
+const getHabitHeatmap = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { habitId } = req.params;
+  const { startDate, endDate } = req.query;
+  const clientDate = req.clientDate;
+
+  const data = await getHabitHeatmapService(
+    userId,
+    habitId,
+    startDate,
+    endDate,
+    clientDate
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Habit heatmap retrieved successfully", data));
+});
+
+export {
+  getOverallStreak,
+  getHeatmap,
+  getSummary,
+  getHabitPerformance,
+  getHabitHeatmap,
+};

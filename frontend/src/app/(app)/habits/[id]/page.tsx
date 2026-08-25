@@ -17,21 +17,26 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { LogCalendar } from "@/components/habits/LogCalendar";
 import {
   useHabit,
   useDeleteHabit,
   useArchiveHabit,
 } from "@/lib/hooks/useHabits";
 import { useStreak } from "@/lib/hooks/useStreak";
-import { useHabitLogs } from "@/lib/hooks/useHabitLogs";
 import {
   frequencyLabel,
   isHabitEnded,
   isStreakRelevant,
 } from "@/lib/utils/habit";
-import { fromApiDate, toDisplayDate } from "@/lib/utils/date";
+import {
+  fromApiDate,
+  toApiDate,
+  todayUtc,
+  toDisplayDate,
+} from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
+import { useHabitHeatmap } from "@/lib/hooks/useStats";
+import { StatsHeatmap } from "@/components/stats/StatsHeatmap";
 
 interface HabitDetailPageProps {
   params: Promise<{ id: string }>;
@@ -44,9 +49,17 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
 
   const { data: habit, isLoading, error, refetch } = useHabit(id);
   const { data: streak } = useStreak(id);
-  const { data: logs = [] } = useHabitLogs(id);
   const archiveHabit = useArchiveHabit();
   const deleteHabit = useDeleteHabit();
+
+  const today = todayUtc();
+  const heatmapStart = new Date(today.getTime() - 181 * 24 * 60 * 60 * 1000); // 6 months
+
+  const { data: heatmapDays = [] } = useHabitHeatmap(
+    id,
+    toApiDate(heatmapStart),
+    toApiDate(today),
+  );
 
   function handleBack() {
     if (window.history.length > 1) {
@@ -78,7 +91,7 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
     });
   }
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  // Loading
   if (isLoading) {
     return (
       <div className="min-h-dvh bg-neutral-950 flex items-center justify-center">
@@ -87,7 +100,7 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
     );
   }
 
-  // ── Error ─────────────────────────────────────────────────────────────────
+  // Error
   if (error || !habit) {
     return (
       <div className="min-h-dvh bg-neutral-950 flex items-center justify-center">
@@ -233,18 +246,18 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
           )}
         </section>
 
-        {/* ── Log calendar ── */}
+        {/* Stats heatmap */}
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold text-neutral-300">
-            Last 4 months including current month
+            Last {heatmapDays.length} days
           </h2>
 
           <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 overflow-x-auto">
-            <LogCalendar habit={habit} logs={logs} />
+            <StatsHeatmap days={heatmapDays} />
           </div>
         </section>
 
-        {/* ── Archive / Unarchive ── */}
+        {/* Archive / Unarchive */}
         <section className="pt-2">
           <Button
             variant={habit.archived ? "outline" : "danger"}
@@ -298,7 +311,7 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
   );
 }
 
-// ── Info chip ─────────────────────────────────────────────────────────────────
+// Info chip
 
 function InfoChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (

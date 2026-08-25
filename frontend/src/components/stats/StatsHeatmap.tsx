@@ -102,10 +102,15 @@ function Cell({ day }: { day: HeatmapDay | null }) {
 
   const color = getCellColor(day.percent);
   const dateLabel = format(fromApiDate(day.date), "MMM d, yyyy");
-  const tooltip =
-    day.percent === null
-      ? `${dateLabel} — rest day`
-      : `${dateLabel} — ${day.percent}% completed`;
+
+  let tooltip: string;
+  if (day.percent === null) {
+    tooltip = `${dateLabel} — rest day`;
+  } else if (day.value != null && day.targetValue != null) {
+    tooltip = `${dateLabel} — ${day.value} of ${day.targetValue} (${day.percent}%)`;
+  } else {
+    tooltip = `${dateLabel} — ${day.percent}% completed`;
+  }
 
   return (
     <div
