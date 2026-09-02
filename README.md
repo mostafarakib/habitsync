@@ -11,10 +11,14 @@ _(Backend is on Render's free tier so it can take 20-30 seconds to wake up if it
 
 ## Screenshots
 
-![Habit Dashboard](dashboard-mobile.png)
-![Habit Details](habit-details-mobile.png)
-![Task](task-mobile.png)
-![Stats](stats-mobile.png)
+<p align="center">
+  <img src="dashboard-mobile.png" alt="Habit Dashboard" width="220">
+  <img src="habit-details-mobile.png" alt="Habit Details" width="220">
+  <img src="task-mobile.png" alt="Task" width="220">
+  <img src="stats-mobile.png" alt="Stats" width="220">
+</p>
+
+---
 
 ## Features
 
