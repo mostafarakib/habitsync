@@ -27,11 +27,13 @@ habitsync/
         │   ├── (app)/          # everything behind the auth guard
         │   │   ├── dashboard/
         │   │   ├── habits/
-        │   │   └── tasks/
+        │   │   ├── tasks/
+        │   │   └── stats/
         │   └── layout.tsx
         ├── components/
         │   ├── habits/
         │   ├── tasks/
+        │   ├── stats/
         │   ├── layout/
         │   └── ui/             # buttons, inputs, the accordion, etc
         ├── lib/
@@ -60,7 +62,7 @@ I actually started without it and quickly regretted it. The dashboard needed to 
 
 ## Two small Zustand stores
 
-I use Zustand for exactly two things: which date is selected on the dashboard, and which tab (Habits or Tasks) is active. Both get read by several unrelated components at once, so passing them down as props would mean threading state through five or six layers, and React Context would re-render more than I want it to. Zustand is basically free in bundle size and solves this cleanly.
+I use Zustand for exactly two things: which date is selected on the dashboard, and which tab (Habits or Tasks) is active. Both get read by several unrelated components at once, so passing them down as props would mean threading state through five or six layers. Zustand is basically free in bundle size and solves this cleanly.
 
 The tab choice also gets saved to localStorage so refreshing the page doesn't dump you back on the Habits tab if you were looking at Tasks. It clears itself when you log out.
 
@@ -102,11 +104,43 @@ Flexible weekly habits (the ones with no fixed day) and monthly habits are delib
 
 ---
 
+## Partial credit, and rethinking what "breaks" a streak
+
+The first version of streak logic was strictly binary, either you did the whole habit that day or the streak reset to zero. That felt too harsh once I actually used the app for a while. If I hit 3 of my 4 target glasses of water, that's not "nothing," but a pure done/not-done system treated it exactly the same as doing nothing at all.
+
+So I moved to a percentage-based rule instead, and it applies the same way to both individual habit streaks and the new overall streak:
+
+- **0% done** → the streak genuinely resets, you didn't show up at all
+- **1-49% done** → the streak holds steady, doesn't go up, doesn't go down, "you tried, that's worth not losing everything for"
+- **50-99% done** → the streak increments, partial effort still counts as a real day
+- **100% done** → the streak increments, same as above
+  Today gets special treatment in this calculation: since the day isn't over yet, today is only ever allowed to help the streak (increment it) if you've already hit 50%+, it can never reset or hold back a streak that's otherwise intact, since you might still log more before the day ends.
+
+Boolean habits don't really have a "partial," so for those it's still just 0% or 100%. For measurable habits with an `atLeast` target, the percentage is a real fraction (2 of 4 glasses is a genuine 50%). Other target types (`atMost`, `lessThan`, `exactly`) don't have a natural percentage in the same way, so those fall back to a binary complete/not-complete score.
+
+I also added **best streak** alongside current streak, both per-habit and as an overall number across all habits. Current streak answers "am I still going," best streak answers "what's the longest I've ever managed," and having both gives a lot more context than current streak alone, especially once a streak eventually breaks and the number resets to zero, at least the best-ever number is still there as a record.
+
+---
+
 ## "Period completion" for flexible and monthly habits
 
 This was the trickiest bit of logic in the whole app. If you complete a flexible weekly habit on Monday, it should show as done for the rest of that week, not just for Monday, then reset itself the following Sunday. Same idea for monthly habits across a calendar month.
 
 The backend computes this per request (`periodCompleted` and `periodLog` on each entry) rather than making the frontend guess. This mattered especially for measurable habits: if you log `2` articles on Monday for a "write 3 articles a week" habit, the input should still show `2` on Wednesday, and bumping it to `3` on Wednesday should update that same log, not create a new one. Getting the frontend to correctly read from `periodLog` instead of the day's own (often empty) log took a few passes to get right.
+
+---
+
+## The stats page
+
+Once habits had real percentage-based scoring, it made sense to surface it somewhere beyond a single number on a single habit's page. The stats page pulls together:
+
+- An overall completion ring (today's scheduled habits, how many done)
+- Current streak, best streak, and active habit count as small stat tiles
+- A 6-month GitHub-style heatmap, one cell per day, color intensity driven by that day's average completion percentage across relevant habits
+- A completion trend chart (Recharts bar chart), bucketed into weekly windows that scale with whatever period you pick (30/60/90 days), so the bar count stays readable instead of turning into a wall of tiny bars at 90 days
+- A per-habit performance list with completion rate, current and best streak, and total completions, with its own independent period selector so it doesn't get coupled to the trend chart's period
+- A small "insights" section that's just deterministic math on data already being fetched, no AI involved, things like flagging your strongest habit, whether you're more consistent on weekdays vs weekends, or calling out a habit that's slipping. All of it is threshold-gated so it only shows an insight when there's actually something meaningful to say, rather than always filling the space with something.
+  The heatmap ended up needing two separate backend endpoints in the end, not one. The multi-habit version (used on the stats page) averages completion across every streak-relevant habit per day. The single-habit version (used on each habit's own detail page) needed to be scoped to one habit and include flexible/monthly habits too, since you'd want to see a heatmap for a habit even if it doesn't count toward the streak system. I originally tried to make one endpoint do both jobs and it got messy fast, splitting them apart made both pieces simpler and meant fixing a bug in one couldn't accidentally break the other.
 
 ---
 
@@ -130,8 +164,6 @@ Render's free backend hosting spins down after 15 minutes of no traffic, and wak
 
 ## Things I'd still like to add
 
-- Longest streak, right now I only track the current one
-- Charts for measurable habits over time
 - An export/report feature for a habit's full history
 - Recurring tasks, or maybe just a lighter-weight "repeat weekly" option for tasks that don't need full habit machinery
 - A React Native app, which is a big part of why the API layer is kept so decoupled from Next.js

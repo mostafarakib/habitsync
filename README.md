@@ -1,6 +1,6 @@
 # HabitSync
 
-A full-stack app for tracking daily habits and tasks. I built it because most habit trackers I tried were either too simple (just a checkbox) or way too complicated (streaks, badges, social feeds, the works). I wanted something in between, minimal but flexible enough to handle daily, weekly, and monthly habits without forcing everything into the same box.
+A full-stack app for managing daily habits and tasks. I built it because most habit trackers I tried were either too simple (just a checkbox) or way too complicated (streaks, badges, social feeds, the works). I wanted something in between, minimal but flexible enough to handle daily, weekly, and monthly habits without forcing everything into the same box.
 
 **Live demo:** [habitsyncweb.vercel.app](https://habitsyncweb.vercel.app)
 **Demo login:** `demo@habitsync.app` / `demo123456`
@@ -11,28 +11,24 @@ _(Backend is on Render's free tier so it can take 20-30 seconds to wake up if it
 
 ## Screenshots
 
-![dashboard](dashboard.png)
-![habit details](habit-details.png)
+![Habit Dashboard](dashboard-mobile.png)
+![Habit Details](habit-details-mobile.png)
+![Task](task-mobile.png)
+![Stats](stats-mobile.png)
 
 ## Features
 
-- Daily, weekly, and monthly habits and tasks creating and tracking
-- Boolean habits (did it / didn't do it) and measurable habits (track a number against a target)
-- Flexible weekly habits, for stuff you want to do sometime during the week without picking a fixed day
-- Streaks that only count scheduled days, so a Mon/Wed/Fri habit doesn't punish you for Tuesday
-- GitHub-style contribution calendar on each habit's page
-- Notes on any log entry
-- Priority levels and sorting
-- Optional start/end dates, ended habits move themselves out of the way automatically
-- Archive habits you're pausing, delete the ones you're done with
-- Tasks with due dates and automatic overdue flagging
-- Everything's responsive, works fine on a phone
+- Habits (daily, weekly, monthly, or flexible) and one-off tasks, side by side in one dashboard
+- Boolean or measurable tracking, with streaks that respect your actual schedule and give partial credit instead of resetting on one rough day
+- A stats page with a completion percentage, a 6-month activity heatmap, trend charts, and a few auto-generated insights
+- Priority, notes, optional start/end dates, and archiving, the small things that make daily use less annoying
+- Fully responsive, works fine on a phone
 
 ---
 
 ## Stack
 
-**Frontend:** Next.js (App Router, but used purely for routing, everything is client-rendered), React Query, Zustand, React Hook Form, Radix UI, Tailwind CSS
+**Frontend:** Next.js (App Router, but used purely for routing, everything is client-rendered), React Query, Zustand, React Hook Form, Radix UI, Recharts, Tailwind CSS
 
 **Backend:** Node, Express, MongoDB with Mongoose, JWT auth in HttpOnly cookies and Cloudinary for cloud storage.
 
@@ -95,7 +91,7 @@ Then open `http://localhost:3000`.
 
 ## What's next
 
-A few things I want to add when I get time: charts for measurable habits, an export/report feature, longest-streak tracking, and maybe letting tasks repeat weekly for people who want something between a task and a full habit.
+A few things I want to add when I get time: an export/report feature, longest-streak tracking, and maybe letting tasks repeat weekly for people who want something between a task and a full habit.
 
 ---
 
