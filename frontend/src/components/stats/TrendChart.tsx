@@ -12,11 +12,13 @@ import {
 import { fromApiDate } from "@/lib/utils/date";
 import { format } from "date-fns";
 import type { HeatmapDay, TrendPeriod } from "@/types";
+import { cn } from "@/lib/utils/cn";
 
 interface TrendChartProps {
   days: HeatmapDay[];
   period: TrendPeriod;
   onPeriodChange: (period: TrendPeriod) => void;
+  className?: string;
 }
 
 interface ChartPoint {
@@ -31,13 +33,23 @@ const BUCKET_SIZE_DAYS: Record<TrendPeriod, number> = {
   90: 15,
 };
 
-export function TrendChart({ days, period, onPeriodChange }: TrendChartProps) {
+export function TrendChart({
+  days,
+  period,
+  onPeriodChange,
+  className,
+}: TrendChartProps) {
   const relevantDays = days.slice(-period);
   const bucketSize = BUCKET_SIZE_DAYS[period];
   const data = bucketByFixedSize(relevantDays, bucketSize);
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 flex flex-col gap-4">
+    <div
+      className={cn(
+        "rounded-2xl border border-neutral-800 bg-neutral-900 p-5 flex flex-col gap-4",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-neutral-200">
@@ -69,7 +81,7 @@ export function TrendChart({ days, period, onPeriodChange }: TrendChartProps) {
           Not enough data yet.
         </p>
       ) : (
-        <div style={{ width: "100%", height: 180 }}>
+        <div className="flex-1 min-h-45">
           <ResponsiveContainer>
             <BarChart
               data={data}

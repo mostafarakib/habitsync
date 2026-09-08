@@ -23,7 +23,7 @@ export default function StatsPage() {
   const [performancePeriod, setPerformancePeriod] = useState<TrendPeriod>(30);
 
   const today = todayUtc();
-  const heatmapStart = new Date(today.getTime() - 181 * 24 * 60 * 60 * 1000); // 6 months
+  const heatmapStart = new Date(today.getTime() - 364 * 24 * 60 * 60 * 1000); // 12 months
 
   const {
     data: summary,
@@ -43,7 +43,7 @@ export default function StatsPage() {
   const isLoading = summaryLoading || habitsLoading || heatmapLoading;
 
   return (
-    <main className="max-w-lg mx-auto w-full px-4 py-6 flex flex-col gap-5">
+    <main className="w-full max-w-lg lg:max-w-6xl mx-auto px-4 py-6 flex flex-col gap-5">
       <h1 className="text-lg font-semibold text-neutral-100">Statistics</h1>
 
       {isLoading && (
@@ -68,37 +68,53 @@ export default function StatsPage() {
       )}
 
       {!isLoading && !summaryError && summary && (
-        <>
-          <StatsSummaryCard summary={summary} />
-          <InsightsCard
-            summary={summary}
-            habits={habits}
-            heatmapDays={heatmapDays}
-          />
+        <div className="flex flex-col gap-5">
+          {/* Row 1 — nested grid: left column stacks two cards, right column is TrendChart matching their combined height */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+            <div className="flex flex-col gap-5">
+              <StatsSummaryCard summary={summary} />
+              <InsightsCard
+                summary={summary}
+                habits={habits}
+                heatmapDays={heatmapDays}
+              />
+            </div>
 
+            <div className="flex">
+              <TrendChart
+                days={heatmapDays}
+                period={trendPeriod}
+                onPeriodChange={setTrendPeriod}
+                className="flex-1"
+              />
+            </div>
+          </div>
+
+          {/* Row 2 — full width heatmap */}
           <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-            <h3 className="text-sm font-semibold text-neutral-200 mb-4">
-              Activity Heatmap
-            </h3>
-            <div className="overflow-x-auto">
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-neutral-200">
+                Activity Heatmap
+              </h3>
+              <p className="text-[11px] text-neutral-600 mt-0.5">
+                Last 12 Months
+              </p>
+            </div>
+            <div className="overflow-x-auto flex justify-center">
               <StatsHeatmap days={heatmapDays} />
             </div>
           </div>
 
-          <TrendChart
-            days={heatmapDays}
-            period={trendPeriod}
-            onPeriodChange={setTrendPeriod}
-          />
-
-          <HabitPerformanceList
-            habits={habits}
-            period={performancePeriod}
-            onPeriodChange={setPerformancePeriod}
-          />
-
-          <StreaksList habits={habits} />
-        </>
+          {/* Row 3 — half + half */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+            <HabitPerformanceList
+              habits={habits}
+              period={performancePeriod}
+              onPeriodChange={setPerformancePeriod}
+            />
+            <StreaksList habits={habits} />
+          </div>
+        </div>
       )}
     </main>
   );

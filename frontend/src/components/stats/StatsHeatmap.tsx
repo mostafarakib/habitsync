@@ -16,7 +16,7 @@ export function StatsHeatmap({ days }: StatsHeatmapProps) {
   const monthLabels = generateMonthLabels(weeks);
 
   return (
-    <div className="flex flex-col gap-2 w-fit min-w-full">
+    <div className="flex flex-col items-center gap-2 w-full">
       {/* Month labels */}
       <div className="flex pl-8">
         {monthLabels.map((label, i) => (
