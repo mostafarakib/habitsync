@@ -2,13 +2,12 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Flame } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { useHabit } from "@/lib/hooks/useHabits";
-import Link from "next/link";
 
 interface HabitEditPageProps {
   params: Promise<{ id: string }>;
@@ -72,25 +71,9 @@ export default function HabitEditPage({ params }: HabitEditPageProps) {
             <ArrowLeft size={18} />
           </Button>
 
-          {/* Logo — links to dashboard */}
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1 hover:opacity-80 transition-opacity"
-          >
-            <Flame size={16} className="text-violet-500" />
-            <span className="text-sm font-semibold tracking-tight text-neutral-100">
-              HabitSync
-            </span>
-          </Link>
-        </div>
-
-        <div className="flex flex-col items-end gap-0.5">
           <h1 className="text-base font-semibold text-neutral-100">
-            Edit Habit
-          </h1>
-          <p className="text-xs text-neutral-500 mt-0.5 truncate max-w-62.5">
             {habit.title}
-          </p>
+          </h1>
         </div>
       </header>
 

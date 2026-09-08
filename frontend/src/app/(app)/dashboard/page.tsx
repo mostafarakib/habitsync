@@ -4,7 +4,6 @@ import { HabitForm } from "@/components/habits/HabitForm";
 import { HabitList } from "@/components/habits/HabitList";
 import { NotesModal } from "@/components/habits/NotesModal";
 import { DateNavigator } from "@/components/layout/DateNavigator";
-import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { useDayLogs } from "@/lib/hooks/useDayLogs";
@@ -96,8 +95,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-dvh bg-neutral-950">
-      <Header />
-
       <div className="max-w-lg mx-auto w-full relative">
         <main>
           {/* Date navigation — habits only */}

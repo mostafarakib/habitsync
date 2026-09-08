@@ -134,17 +134,6 @@ export default function HabitDetailPage({ params }: HabitDetailPageProps) {
           >
             <ArrowLeft size={18} />
           </Button>
-
-          {/* Logo — links to dashboard */}
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <Flame size={16} className="text-violet-500" />
-            <span className="text-sm font-semibold tracking-tight text-neutral-100">
-              HabitSync
-            </span>
-          </Link>
         </div>
 
         {/* Edit button — disabled for ended habits */}

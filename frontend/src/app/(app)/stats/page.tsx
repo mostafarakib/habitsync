@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/components/layout/Header";
 import { StatsSummaryCard } from "@/components/stats/StatsSummaryCard";
 import { StatsHeatmap } from "@/components/stats/StatsHeatmap";
 import { TrendChart } from "@/components/stats/TrendChart";
@@ -44,67 +43,63 @@ export default function StatsPage() {
   const isLoading = summaryLoading || habitsLoading || heatmapLoading;
 
   return (
-    <div className="min-h-dvh bg-neutral-950">
-      <Header />
+    <main className="max-w-lg mx-auto w-full px-4 py-6 flex flex-col gap-5">
+      <h1 className="text-lg font-semibold text-neutral-100">Statistics</h1>
 
-      <main className="max-w-lg mx-auto w-full px-4 py-6 flex flex-col gap-5">
-        <h1 className="text-lg font-semibold text-neutral-100">Statistics</h1>
+      {isLoading && (
+        <div className="flex justify-center py-20">
+          <Spinner size="md" />
+        </div>
+      )}
 
-        {isLoading && (
-          <div className="flex justify-center py-20">
-            <Spinner size="md" />
-          </div>
-        )}
+      {summaryError && !isLoading && (
+        <ErrorState
+          message="Failed to load your stats."
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchSummary()}
+            >
+              Try again
+            </Button>
+          }
+        />
+      )}
 
-        {summaryError && !isLoading && (
-          <ErrorState
-            message="Failed to load your stats."
-            action={
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchSummary()}
-              >
-                Try again
-              </Button>
-            }
+      {!isLoading && !summaryError && summary && (
+        <>
+          <StatsSummaryCard summary={summary} />
+          <InsightsCard
+            summary={summary}
+            habits={habits}
+            heatmapDays={heatmapDays}
           />
-        )}
 
-        {!isLoading && !summaryError && summary && (
-          <>
-            <StatsSummaryCard summary={summary} />
-            <InsightsCard
-              summary={summary}
-              habits={habits}
-              heatmapDays={heatmapDays}
-            />
-
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-              <h3 className="text-sm font-semibold text-neutral-200 mb-4">
-                Activity Heatmap
-              </h3>
-              <div className="overflow-x-auto">
-                <StatsHeatmap days={heatmapDays} />
-              </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
+            <h3 className="text-sm font-semibold text-neutral-200 mb-4">
+              Activity Heatmap
+            </h3>
+            <div className="overflow-x-auto">
+              <StatsHeatmap days={heatmapDays} />
             </div>
+          </div>
 
-            <TrendChart
-              days={heatmapDays}
-              period={trendPeriod}
-              onPeriodChange={setTrendPeriod}
-            />
+          <TrendChart
+            days={heatmapDays}
+            period={trendPeriod}
+            onPeriodChange={setTrendPeriod}
+          />
 
-            <HabitPerformanceList
-              habits={habits}
-              period={performancePeriod}
-              onPeriodChange={setPerformancePeriod}
-            />
+          <HabitPerformanceList
+            habits={habits}
+            period={performancePeriod}
+            onPeriodChange={setPerformancePeriod}
+          />
 
-            <StreaksList habits={habits} />
-          </>
-        )}
-      </main>
-    </div>
+          <StreaksList habits={habits} />
+        </>
+      )}
+    </main>
   );
 }

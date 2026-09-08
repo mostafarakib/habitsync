@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Pencil,
   Trash2,
-  Flame,
   Tag,
   Calendar,
   CircleCheck,
@@ -104,15 +103,9 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
             <ArrowLeft size={18} />
           </Button>
 
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <Flame size={16} className="text-violet-500" />
-            <span className="text-sm font-semibold tracking-tight text-neutral-100">
-              HabitSync
-            </span>
-          </Link>
+          <h1 className="text-base font-semibold text-neutral-100">
+            Task Details
+          </h1>
         </div>
 
         <Link href={`/tasks/${task._id}/edit`}>
