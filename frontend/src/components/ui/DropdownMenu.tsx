@@ -3,13 +3,15 @@
 import * as Radix from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils/cn";
 
-// ── Root ──────────────────────────────────────────────────────────────────────
+// Root
 
 interface DropdownMenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
   align?: "start" | "center" | "end";
   side?: "top" | "bottom";
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function DropdownMenu({
@@ -17,9 +19,11 @@ export function DropdownMenu({
   children,
   align = "end",
   side = "bottom",
+  open,
+  onOpenChange,
 }: DropdownMenuProps) {
   return (
-    <Radix.Root>
+    <Radix.Root open={open} onOpenChange={onOpenChange}>
       <Radix.Trigger asChild>{trigger}</Radix.Trigger>
 
       <Radix.Portal>
@@ -44,7 +48,7 @@ export function DropdownMenu({
   );
 }
 
-// ── Item ──────────────────────────────────────────────────────────────────────
+// Item
 
 interface DropdownMenuItemProps {
   children: React.ReactNode;
@@ -81,13 +85,13 @@ export function DropdownMenuItem({
   );
 }
 
-// ── Separator ─────────────────────────────────────────────────────────────────
+// Separator
 
 export function DropdownMenuSeparator() {
   return <Radix.Separator className="my-1 h-px bg-neutral-800" />;
 }
 
-// ── Label ─────────────────────────────────────────────────────────────────────
+// Label
 
 export function DropdownMenuLabel({ children }: { children: React.ReactNode }) {
   return (
