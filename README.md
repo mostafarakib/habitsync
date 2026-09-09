@@ -12,10 +12,9 @@ _(Backend is on Render's free tier so it can take 20-30 seconds to wake up if it
 ## Screenshots
 
 <p align="center">
-  <img src="dashboard-mobile.png" alt="Habit Dashboard" width="220">
-  <img src="habit-details-mobile.png" alt="Habit Details" width="220">
-  <img src="task-mobile.png" alt="Task" width="220">
-  <img src="stats-mobile.png" alt="Stats" width="220">
+  <img src="dashboard_combined.png" alt="Habit Dashboard - Web & Mobile" width="800">
+  <br><br>
+  <img src="stats_combined.png" alt="Stats - Web & Mobile" width="800">
 </p>
 
 ---
